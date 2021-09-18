@@ -1,0 +1,37 @@
+# @package _global_
+
+# specify here default training configuration
+defaults:
+  - trainer: default
+  - model: vanilla_gan
+  - datamodule: mnist
+  - callbacks: null # set this to null if you don't want to use callbacks
+  - logger: tensorboard # set logger here or use command line (e.g. `python run.py logger=wandb`)
+
+  - experiment: null
+  - hparams_search: null
+
+  - hydra: default.yaml
+
+  # enable color logging
+  - override hydra/hydra_logging: colorlog
+  - override hydra/job_logging: colorlog
+  - _self_
+
+# path to original working directory
+# hydra hijacks working directory by changing it to the current log directory,
+# so it's useful to have this path as a special variable
+# learn more here: https://hydra.cc/docs/next/tutorials/basic/running_your_app/working_directory
+work_dir: ${hydra:runtime.cwd}
+
+# path to folder with data
+data_dir: ${work_dir}/data/
+
+# path to logging
+log_dir: logs
+
+# pretty print config at the start of the run using Rich library
+print_config: True
+
+# disable python warnings if they annoy you
+ignore_warnings: False

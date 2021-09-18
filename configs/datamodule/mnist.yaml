@@ -1,0 +1,5 @@
+_target_: src.datamodules.mnist.MNISTDataModule
+
+data_dir: ${data_dir}
+batch_size: 64
+num_workers: 8
