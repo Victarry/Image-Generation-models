@@ -1,8 +1,24 @@
 _target_: src.models.vanilla_gan.GAN
+loss_mode: vanilla
 channels: 1
 width: 28
 height: 28
 latent_dim: 100
-lr: 0.0002
+lrG: 0.0002
+lrD: 0.0002
 b1: 0.5
 b2: 0.999
+input_normalize: True
+netG:
+  input_dim: ${model.latent_dim}
+  hidden_dims:
+    - 256
+    - 512
+    - 1024
+  output_act: identity
+netD:
+  output_dim: 1
+  hidden_dims:
+    - 1024
+    - 512
+    - 256

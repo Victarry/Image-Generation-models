@@ -40,13 +40,13 @@ class MLPEncoder(nn.Module):
 
 
 class MLPDecoder(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dims):
+    def __init__(self, input_dim, output_dim, hidden_dims, output_act):
         super().__init__()
 
         dims = [input_dim, *hidden_dims]
         self.model = nn.Sequential(
             *[LinearAct(x, y, 'leaky_relu') for x,y in zip(dims[:-1], dims[1:])],
-            LinearAct(hidden_dims[-1], output_dim, 'tanh')
+            LinearAct(hidden_dims[-1], output_dim, output_act)
         )
     
     def forward(self, x):

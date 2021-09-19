@@ -11,6 +11,7 @@ class MNISTDataModule(pl.LightningDataModule):
         data_dir: str = './data',
         batch_size: int = 64,
         num_workers: int = 8,
+        **kargs
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -19,7 +20,7 @@ class MNISTDataModule(pl.LightningDataModule):
 
         self.transform = transforms.Compose(
             [
-                transforms.ToTensor(),
+                transforms.ToTensor()
             ]
         )
 
