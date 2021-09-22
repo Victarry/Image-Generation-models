@@ -3,6 +3,7 @@ import torchvision
 from src.networks import MLPEncoder, MLPDecoder
 import torch
 import torch.nn.functional as F
+from src.utils import utils
 
 
 class GAN(pl.LightningModule):
@@ -19,6 +20,7 @@ class GAN(pl.LightningModule):
                  b1: float = 0.5,
                  b2: float = 0.999,
                  input_normalize=True,
+                 optim='adam',
                  **kwargs):
         super().__init__()
         self.save_hyperparameters()
@@ -29,6 +31,9 @@ class GAN(pl.LightningModule):
         self.generator = MLPDecoder(**netG, output_dim=data_shape)
         self.discriminator = MLPEncoder(input_dim=data_shape, **netD)
 
+        # model info
+        logger = utils.get_logger()
+        # logger.info()
     def forward(self, z):
         output = self.generator(z)
         output = output.reshape(z.shape[0], self.hparams.channels,
@@ -58,9 +63,9 @@ class GAN(pl.LightningModule):
 
             # log sampled images
             if self.hparams.input_normalize:
-                grid = torchvision.utils.make_grid(generated_imgs, normalize=True, value_range=(-1, 1))
+                grid = torchvision.utils.make_grid(generated_imgs[:64], normalize=True, value_range=(-1, 1))
             else:
-                grid = torchvision.utils.make_grid(generated_imgs, normalize=False)
+                grid = torchvision.utils.make_grid(generated_imgs[:64], normalize=False)
             self.logger.experiment.add_image("generated_images", grid,
                                              self.global_step)
 
@@ -80,17 +85,21 @@ class GAN(pl.LightningModule):
             # real loss
             valid = torch.ones(imgs.size(0), 1)
             valid = valid.type_as(imgs)
-            real_loss = self.adversarial_loss(self.discriminator(imgs), valid)
+            real_logit = self.discriminator(imgs)
+            real_loss = self.adversarial_loss(real_logit, valid)
 
             # fake loss
             fake = torch.zeros(imgs.size(0), 1)
             fake = fake.type_as(imgs)
-            fake_loss = self.adversarial_loss(
-                self.discriminator(self(z).detach()), fake)
+            fake_logit = self.discriminator(self(z).detach())
+            fake_loss = self.adversarial_loss(fake_logit, fake)
 
             # discriminator loss is the average of these
             d_loss = (real_loss + fake_loss) / 2
             self.log('train_loss/d_loss', d_loss)
+            self.log('train_log/real_logit', real_logit.mean())
+            self.log('train_log/fake_logit', fake_logit.mean())
+
             return d_loss
 
     def configure_optimizers(self):
@@ -99,10 +108,16 @@ class GAN(pl.LightningModule):
         b1 = self.hparams.b1
         b2 = self.hparams.b2
 
-        opt_g = torch.optim.Adam(self.generator.parameters(),
-                                 lr=lrG,
-                                 betas=(b1, b2))
-        opt_d = torch.optim.Adam(self.discriminator.parameters(),
-                                 lr=lrD,
-                                 betas=(b1, b2))
+        if self.hparams.optim == 'adam':
+            opt_g = torch.optim.Adam(self.generator.parameters(),
+                                    lr=lrG,
+                                    betas=(b1, b2))
+            opt_d = torch.optim.Adam(self.discriminator.parameters(),
+                                    lr=lrD,
+                                    betas=(b1, b2))
+        elif self.hparams.optim == 'sgd':
+            opt_g = torch.optim.SGD(self.generator.parameters(),
+                                    lr=lrG)
+            opt_d = torch.optim.Adam(self.discriminator.parameters(),
+                                    lr=lrD)
         return [opt_g, opt_d]
