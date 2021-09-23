@@ -10,16 +10,5 @@ b1: 0.5
 b2: 0.999
 optim: adam
 input_normalize: True
-netG:
-  input_dim: ${model.latent_dim}
-  hidden_dims:
-    - 256
-    - 512
-    - 1024
-  output_act: identity
-netD:
-  output_dim: 1
-  hidden_dims:
-    - 1024
-    - 512
-    - 256
+netG: ${networks.netG}
+netD: ${networks.netD}

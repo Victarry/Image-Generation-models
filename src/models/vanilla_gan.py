@@ -1,9 +1,9 @@
 import pytorch_lightning as pl
 import torchvision
-from src.networks import MLPEncoder, MLPDecoder
 import torch
 import torch.nn.functional as F
 from src.utils import utils
+import hydra
 
 
 class GAN(pl.LightningModule):
@@ -26,10 +26,8 @@ class GAN(pl.LightningModule):
         self.save_hyperparameters()
 
         # networks
-        data_shape = channels*width*height
-        
-        self.generator = MLPDecoder(**netG, output_dim=data_shape)
-        self.discriminator = MLPEncoder(input_dim=data_shape, **netD)
+        self.generator = hydra.utils.instantiate(netG)
+        self.discriminator = hydra.utils.instantiate(netD)
 
         # model info
         logger = utils.get_logger()

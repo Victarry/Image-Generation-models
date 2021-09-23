@@ -1,0 +1,18 @@
+netG:
+  _target_: src.networks.basic.MLPDecoder
+  input_dim: ${model.latent_dim}
+  output_dim: 784
+  hidden_dims:
+    - 256
+    - 512
+    - 1024
+  output_act: tanh
+netD:
+  _target_: src.networks.basic.MLPEncoder
+  input_dim: 784
+  output_dim: 1
+  hidden_dims:
+    - 1024
+    - 512
+    - 256
+  dropout: 0
