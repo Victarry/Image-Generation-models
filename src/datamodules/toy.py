@@ -5,6 +5,7 @@ from torch.utils.data import random_split, DataLoader
 from torchvision.datasets import MNIST
 from torchvision import transforms
 
+
 class MixtureGaussianDataset(pl.LightningDataModule):
     def __init__(self):
         super().__init__()
