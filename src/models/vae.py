@@ -1,6 +1,6 @@
+import hydra
 import pytorch_lightning as pl
 import torchvision
-from src.networks import MLPEncoder, MLPDecoder
 import torch
 import torch.nn.functional as F
 from src.utils import utils
@@ -28,8 +28,8 @@ class VAE(pl.LightningModule):
         # networks
         data_shape = channels*width*height
         
-        self.decoder = MLPDecoder(**decoder, output_dim=data_shape)
-        self.encoder = MLPEncoder(input_dim=data_shape, **encoder)
+        self.decoder = hydra.utils.instantiate(decoder)
+        self.encoder = hydra.utils.instantiate(encoder)
 
         # model info
         self.console = utils.get_logger()
@@ -49,7 +49,7 @@ class VAE(pl.LightningModule):
             imgs = imgs*2-1
 
         # encoding
-        z = self.encoder(imgs)
+        z = self.encoder(imgs) # (N, latent_dim)
         mu, log_sigma = z[:, :self.hparams.latent_dim], z[:, self.hparams.latent_dim:]
 
         # note the negative mark

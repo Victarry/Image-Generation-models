@@ -76,8 +76,9 @@ class ConvGenerator(nn.Module):
 
 
 class ConvDiscriminator(nn.Module):
-    def __init__(self, input_channel, ndf):
+    def __init__(self, input_channel, output_channel, ndf):
         super().__init__()
+        self.output_channel = output_channel
         self.network = nn.Sequential(
             nn.Conv2d(input_channel, ndf, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
@@ -85,8 +86,8 @@ class ConvDiscriminator(nn.Module):
             nn.BatchNorm2d(ndf * 2), nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(ndf * 2, ndf * 4, 3, 2, 1, bias=False),
             nn.BatchNorm2d(ndf * 4), nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(ndf * 4, 1, 4, 1, 0, bias=False))
+            nn.Conv2d(ndf * 4, output_channel, 4, 1, 0, bias=False))
 
     def forward(self, input):
         output = self.network(input)
-        return output.view(-1, 1)
+        return output.view(-1, self.output_channel)

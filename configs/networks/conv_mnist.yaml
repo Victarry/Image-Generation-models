@@ -1,9 +1,10 @@
-netG:
+decoder:
   _target_: src.networks.basic.ConvGenerator
   latent_dim: ${model.latent_dim}
   output_channel: 1
   ngf: 32
-netD:
+encoder:
   _target_: src.networks.basic.ConvDiscriminator
   input_channel: 1
+  output_channel: ${model.encoder_dim}
   ndf: 32

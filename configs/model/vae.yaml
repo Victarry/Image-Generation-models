@@ -3,22 +3,12 @@ channels: 1
 width: 28
 height: 28
 latent_dim: 100
+encoder_dim: 200
 lr: 0.001
 b1: 0.5
 b2: 0.999
 reg_weight: 1
 optim: adam
 input_normalize: True
-decoder:
-  input_dim: 100
-  hidden_dims:
-    - 256
-    - 512
-    - 1024
-  output_act: identity
-encoder:
-  output_dim: 200
-  hidden_dims:
-    - 1024
-    - 512
-    - 256
+encoder: ${networks.encoder}
+decoder: ${networks.decoder}
