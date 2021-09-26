@@ -11,7 +11,7 @@ Structurally configured architectures for differents generative methods with dif
 == Implemented Method
 
 === GAN
-Paper: _Generative Adversarial Nets_ https://arxiv.org/abs/1406.2661[arxiv]
+Paper: _Generative Adversarial Nets_ , https://arxiv.org/abs/1406.2661[arxiv]
 
 ==== Results on MNIST
 [cols="2*", options="header"] 
@@ -23,10 +23,23 @@ Paper: _Generative Adversarial Nets_ https://arxiv.org/abs/1406.2661[arxiv]
 | image:assets/gan/mnist_conv.gif[mnist_conv]
 |===
 
+[source, bash]
+----
+python run.py experiment=gan/vanilla_mlp_mnist
+python run.py experiment=gan/vanilla_conv_mnist
+----
+
 === VAE
-Paper: _Auto-Encoding Variational Bayes_ https://arxiv.org/abs/1312.6114[arxiv]
+Paper: _Auto-Encoding Variational Bayes_ , https://arxiv.org/abs/1312.6114[arxiv]
 
 ==== Results on MNIST
+
+[source, bash]
+----
+python run.py experiment=vae/mlp_mnist
+python run.py experiment=vae/conv_mnist
+----
+
 [cols="2*", options="header"] 
 |===
 |MLP network
