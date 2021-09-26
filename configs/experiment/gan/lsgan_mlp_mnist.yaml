@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - override /model: gan
+  - override /networks: mlp_mnist
+  - override /datamodule: mnist
+
+model:
+  loss_mode: lsgan
+exp_name: gan_lsgan_mlp_mnist

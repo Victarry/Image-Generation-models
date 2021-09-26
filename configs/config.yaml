@@ -3,21 +3,18 @@
 # specify here default training configuration
 defaults:
   - trainer: default
-  - model: vanilla_gan
-  - datamodule: mnist
-  - networks: mlp_mnist
+  - model: null
+  - datamodule: null
+  - networks: null
   - callbacks: null # set this to null if you don't want to use callbacks
   - logger: tensorboard # set logger here or use command line (e.g. `python run.py logger=wandb`)
-
+  - hydra: default
+  - _self_
   - experiment: null
-  - hparams_search: null
-
-  - hydra: default.yaml
 
   # enable color logging
   - override hydra/hydra_logging: colorlog
   - override hydra/job_logging: colorlog
-  - _self_
 
 # path to original working directory
 # hydra hijacks working directory by changing it to the current log directory,
@@ -30,6 +27,9 @@ data_dir: ${work_dir}/data/
 
 # path to logging
 log_dir: logs
+
+# exp_name
+exp_name: ${now:%Y-%m-%d}/${now:%H-%M-%S}
 
 # pretty print config at the start of the run using Rich library
 print_config: True

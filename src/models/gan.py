@@ -1,9 +1,16 @@
+"""
+Traditional Unconditional GANs, with different loss modes including:
+1. Binary Cross Entroy (vanilla_gan)
+2. Least Square Error(lsgan)
+3. Wassertain GAN(wgan)
+"""
 import pytorch_lightning as pl
 import torchvision
 import torch
 import torch.nn.functional as F
 from src.utils import utils
 import hydra
+from pathlib import Path
 
 
 class GAN(pl.LightningModule):
@@ -22,7 +29,7 @@ class GAN(pl.LightningModule):
         b2: float = 0.999,
         input_normalize=True,
         optim="adam",
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -35,12 +42,39 @@ class GAN(pl.LightningModule):
         logger = utils.get_logger()
         # logger.info()
 
+    def get_grid_images(self, imgs):
+        imgs = imgs.reshape(
+            -1, self.hparams.channels, self.hparams.height, self.hparams.width
+        )
+        if self.hparams.input_normalize:
+            grid = torchvision.utils.make_grid(
+                imgs[:64], normalize=True, value_range=(-1, 1)
+            )
+        else:
+            grid = torchvision.utils.make_grid(imgs[:64], normalize=False)
+        return grid
+
+    def log_images(self, imgs, name):
+        grid = self.get_grid_images(imgs)
+        self.logger.experiment.add_image(name, grid, self.global_step)
+
     def forward(self, z):
         output = self.generator(z)
         output = output.reshape(
             z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
         )
         return output
+
+    def on_train_epoch_end(self):
+        result_path = Path("results")
+        result_path.mkdir(parents=True, exist_ok=True)
+        if hasattr(self, "z"):
+            z = self.z
+        else:
+            self.z = z = torch.randn(64, self.hparams.latent_dim).to(self.device)
+        imgs = self.generator(z)
+        grid = self.get_grid_images(imgs)
+        torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
 
     def adversarial_loss(self, y_hat, y):
         if self.hparams.loss_mode == "vanilla":
@@ -57,20 +91,14 @@ class GAN(pl.LightningModule):
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)
         z = z.type_as(imgs)
 
-        # train generator
+        # train generator, pytorch_lightning will automatically set discriminator requires_gard as False
         if optimizer_idx == 0:
 
             # generate images
             generated_imgs = self(z)
 
             # log sampled images
-            if self.hparams.input_normalize:
-                grid = torchvision.utils.make_grid(
-                    generated_imgs[:64], normalize=True, value_range=(-1, 1)
-                )
-            else:
-                grid = torchvision.utils.make_grid(generated_imgs[:64], normalize=False)
-            self.logger.experiment.add_image("generated_images", grid, self.global_step)
+            self.log_images(generated_imgs, "generated_images")
 
             # ground truth result (ie: all fake)
             # put on GPU because we created this tensor inside training_loop

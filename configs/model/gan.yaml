@@ -1,4 +1,4 @@
-_target_: src.models.vanilla_gan.GAN
+_target_: src.models.gan.GAN
 loss_mode: vanilla
 channels: 1
 width: 28
