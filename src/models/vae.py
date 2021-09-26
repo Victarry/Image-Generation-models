@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from src.utils import utils
 import itertools
+from pathlib import Path
 
 
 class VAE(pl.LightningModule):
@@ -22,7 +23,7 @@ class VAE(pl.LightningModule):
         b2: float = 0.999,
         input_normalize=True,
         optim="adam",
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -48,6 +49,33 @@ class VAE(pl.LightningModule):
             self.hparams.width,
         )
         return output
+
+    def on_train_epoch_end(self):
+        result_path = Path("results")
+        result_path.mkdir(parents=True, exist_ok=True)
+        if hasattr(self, "z"):
+            z = self.z
+        else:
+            self.z = z = torch.randn(64, self.hparams.latent_dim).to(self.device)
+        imgs = self.decoder(z)
+        grid = self.get_grid_images(imgs)
+        torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
+
+    def get_grid_images(self, imgs):
+        imgs = imgs.reshape(
+            -1, self.hparams.channels, self.hparams.height, self.hparams.width
+        )
+        if self.hparams.input_normalize:
+            grid = torchvision.utils.make_grid(
+                imgs[:64], normalize=True, value_range=(-1, 1)
+            )
+        else:
+            grid = torchvision.utils.make_grid(imgs[:64], normalize=False)
+        return grid
+
+    def log_images(self, imgs, name):
+        grid = self.get_grid_images(imgs)
+        self.logger.experiment.add_image(name, grid, self.global_step)
 
     def training_step(self, batch, batch_idx):
         imgs, _ = batch
@@ -83,33 +111,9 @@ class VAE(pl.LightningModule):
         # log sampled images
         if self.global_step % 50 == 0:
             sample_images = self()
-            if self.hparams.input_normalize:
-                input_img = torchvision.utils.make_grid(
-                    imgs[:64], normalize=True, value_range=(-1, 1)
-                )
-                output_img = torchvision.utils.make_grid(
-                    generated_imgs[:64], normalize=True, value_range=(-1, 1)
-                )
-                sample_image = torchvision.utils.make_grid(
-                    sample_images[:64], normalize=True, value_range=(-1, 1)
-                )
-            else:
-                input_img = torchvision.utils.make_grid(imgs[:64], normalize=False)
-                output_img = torchvision.utils.make_grid(
-                    generated_imgs[:64], normalize=False
-                )
-                sample_image = torchvision.utils.make_grid(
-                    sample_images[:64], normalize=False
-                )
-            self.logger.experiment.add_image(
-                "recon/source_image", input_img, self.global_step
-            )
-            self.logger.experiment.add_image(
-                "recon/output_image", output_img, self.global_step
-            )
-            self.logger.experiment.add_image(
-                "sample/output_image", sample_image, self.global_step
-            )
+            self.log_images(imgs, "recon/source_image")
+            self.log_images(generated_imgs, "recon/output_image")
+            self.log_images(sample_images, "sample/output_image")
 
         return total_loss
 

@@ -10,9 +10,29 @@ Structurally configured architectures for differents generative methods with dif
 
 == Implemented Method
 
-=== Vanilla GAN
-Paper: 
+=== GAN
+Paper: _Generative Adversarial Nets_ https://arxiv.org/abs/1406.2661[arxiv]
+
+==== Results on MNIST
+[cols="2*", options="header"] 
+|===
+|MLP network
+|Convolution Network
+
+| image:assets/gan/mnist_mlp.gif[mnist_mlp]
+| image:assets/gan/mnist_conv.gif[mnist_conv]
+|===
 
 === VAE
+Paper: _Auto-Encoding Variational Bayes_ https://arxiv.org/abs/1312.6114[arxiv]
 
-=== InfoGAN
+==== Results on MNIST
+[cols="2*", options="header"] 
+|===
+|MLP network
+|Convolution Network
+
+| image:assets/vae/mnist_mlp.gif[mnist_mlp]
+| image:assets/vae/mnist_conv.gif[mnist_conv]
+|===
+
