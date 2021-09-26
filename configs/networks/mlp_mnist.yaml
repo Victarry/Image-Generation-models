@@ -7,6 +7,7 @@ decoder:
     - 512
     - 1024
   output_act: tanh
+  batch_norm: True
 encoder:
   _target_: src.networks.basic.MLPEncoder
   input_dim: 784
@@ -16,3 +17,4 @@ encoder:
     - 512
     - 256
   dropout: 0
+  batch_norm: True

@@ -39,8 +39,7 @@ class GAN(pl.LightningModule):
         self.discriminator = hydra.utils.instantiate(netD)
 
         # model info
-        logger = utils.get_logger()
-        # logger.info()
+        self.console = utils.get_logger()
 
     def get_grid_images(self, imgs):
         imgs = imgs.reshape(

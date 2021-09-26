@@ -1,17 +1,15 @@
 from torch import nn
-import torch
-from torch.nn.modules.activation import LeakyReLU
 
 
 class LinearAct(nn.Module):
-    def __init__(self, input_dim, output_dim, act="relu", dropout=0):
+    def __init__(self, input_dim, output_dim, act="relu", dropout=0, batch_norm=False):
         super().__init__()
         self.fc = nn.Linear(input_dim, output_dim)
         self.dropout = nn.Dropout(dropout)
         if act == "relu":
             self.act = nn.ReLU(inplace=True)
         elif act == "leaky_relu":
-            self.act = nn.LeakyReLU(inplace=True)
+            self.act = nn.LeakyReLU(0.2, inplace=True)
         elif act == "identity":
             self.act = nn.Identity()
         elif act == "sigmoid":
@@ -20,22 +18,35 @@ class LinearAct(nn.Module):
             self.act = nn.Tanh()
         else:
             raise NotImplementedError
+        if batch_norm:
+            self.bn = nn.BatchNorm1d(output_dim)
+        else:
+            self.bn = nn.Identity()
 
     def forward(self, x):
-        return self.dropout(self.act(self.fc(x)))
+        # NOTE: batch_norm should placed before activation, othervise netD will not converge
+        return self.dropout(self.act(self.bn(self.fc(x))))
 
 
 class MLPEncoder(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dims, dropout=0):
+    def __init__(self, input_dim, output_dim, hidden_dims, dropout=0, batch_norm=False):
         super().__init__()
 
         dims = [input_dim, *hidden_dims]
         self.model = nn.Sequential(
+            # first layer not use batch_norm
+            LinearAct(
+                input_dim,
+                hidden_dims[0],
+                "leaky_relu",
+                dropout=dropout,
+                batch_norm=False,
+            ),
             *[
-                LinearAct(x, y, "relu", dropout=dropout)
-                for x, y in zip(dims[:-1], dims[1:])
+                LinearAct(x, y, "leaky_relu", dropout=dropout, batch_norm=batch_norm)
+                for x, y in zip(dims[1:-1], dims[2:])
             ],
-            LinearAct(hidden_dims[-1], output_dim, "identity")
+            LinearAct(hidden_dims[-1], output_dim, "identity", batch_norm=False)
         )
 
     def forward(self, x):
@@ -45,13 +56,18 @@ class MLPEncoder(nn.Module):
 
 
 class MLPDecoder(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dims, output_act):
+    def __init__(
+        self, input_dim, output_dim, hidden_dims, output_act, batch_norm=False
+    ):
         super().__init__()
 
         dims = [input_dim, *hidden_dims]
         self.model = nn.Sequential(
-            *[LinearAct(x, y, "leaky_relu") for x, y in zip(dims[:-1], dims[1:])],
-            LinearAct(hidden_dims[-1], output_dim, output_act)
+            *[
+                LinearAct(x, y, "relu", batch_norm=batch_norm)
+                for x, y in zip(dims[:-1], dims[1:])
+            ],
+            LinearAct(hidden_dims[-1], output_dim, act=output_act, batch_norm=False)
         )
 
     def forward(self, x):
