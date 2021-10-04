@@ -13,14 +13,20 @@ Structurally configured architectures for differents generative methods with dif
 === GAN
 Paper: _Generative Adversarial Nets_ , https://arxiv.org/abs/1406.2661[arxiv]
 
-==== Results on MNIST
-[cols="2*", options="header"] 
+==== Results
+[cols="3*", options="header"] 
 |===
+|Dataset
 |MLP network
 |Convolution Network
 
+| MNIST
 | image:assets/gan/mnist_mlp.gif[mnist_mlp]
 | image:assets/gan/mnist_conv.gif[mnist_conv]
+
+| CelebA
+| TODO
+| image:assets/gan/celeba_conv.gif[cleba_conv]
 |===
 
 [source, bash]
@@ -32,7 +38,7 @@ python run.py experiment=gan/vanilla_conv_mnist
 === VAE
 Paper: _Auto-Encoding Variational Bayes_ , https://arxiv.org/abs/1312.6114[arxiv]
 
-==== Results on MNIST
+==== Results
 
 [source, bash]
 ----
@@ -40,12 +46,18 @@ python run.py experiment=vae/mlp_mnist
 python run.py experiment=vae/conv_mnist
 ----
 
-[cols="2*", options="header"] 
+[cols="3*", options="header"] 
 |===
+|Dataset
 |MLP network
 |Convolution Network
 
+| MNIST
 | image:assets/vae/mnist_mlp.gif[mnist_mlp]
 | image:assets/vae/mnist_conv.gif[mnist_conv]
+
+|CelebA
+| image:assets/vae/celeba_mlp.gif[celeba_mlp]
+| image:assets/vae/celeba_conv.gif[celeba_conv]
 |===
 

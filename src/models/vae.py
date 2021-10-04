@@ -29,8 +29,12 @@ class VAE(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        self.decoder = hydra.utils.instantiate(decoder, input_channel=latent_dim, output_channel=channels)
-        self.encoder = hydra.utils.instantiate(encoder, input_channel=channels, output_channel=2*latent_dim)
+        self.decoder = hydra.utils.instantiate(
+            decoder, input_channel=latent_dim, output_channel=channels
+        )
+        self.encoder = hydra.utils.instantiate(
+            encoder, input_channel=channels, output_channel=2 * latent_dim
+        )
 
         # model info
         self.console = utils.get_logger()

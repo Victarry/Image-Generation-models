@@ -22,11 +22,7 @@ class CelebADataModule(pl.LightningDataModule):
         self.num_workers = num_workers
 
         self.transform = transforms.Compose(
-            [
-                transforms.Resize((width, height)),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            ]
+            [transforms.Resize((width, height)), transforms.ToTensor()]
         )
 
         # self.dims is returned when you call dm.size()
