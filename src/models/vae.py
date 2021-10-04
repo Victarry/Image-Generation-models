@@ -6,17 +6,18 @@ import torch.nn.functional as F
 from src.utils import utils
 import itertools
 from pathlib import Path
+from omegaconf import OmegaConf
 
 
 class VAE(pl.LightningModule):
     def __init__(
         self,
-        channels,
-        width,
-        height,
-        encoder,
-        decoder,
-        reg_weight,
+        channels: int = 3,
+        width: int = 64,
+        height: int = 64,
+        encoder: OmegaConf = None,
+        decoder: OmegaConf = None,
+        reg_weight: float = 1.0,
         latent_dim=100,
         lr: float = 0.0002,
         b1: float = 0.5,
@@ -28,11 +29,8 @@ class VAE(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        # networks
-        data_shape = channels * width * height
-
-        self.decoder = hydra.utils.instantiate(decoder)
-        self.encoder = hydra.utils.instantiate(encoder)
+        self.decoder = hydra.utils.instantiate(decoder, input_channel=latent_dim, output_channel=channels)
+        self.encoder = hydra.utils.instantiate(encoder, input_channel=channels, output_channel=2*latent_dim)
 
         # model info
         self.console = utils.get_logger()
@@ -84,7 +82,8 @@ class VAE(pl.LightningModule):
             imgs = imgs * 2 - 1
 
         # encoding
-        z = self.encoder(imgs)  # (N, latent_dim)
+        z = self.encoder(imgs).reshape(N, -1)  # (N, latent_dim)
+        assert z.shape == (N, 2 * self.hparams.latent_dim), f"shape of z: {z.shape}"
         mu, log_sigma = z[:, : self.hparams.latent_dim], z[:, self.hparams.latent_dim :]
 
         # note the negative mark
@@ -98,10 +97,11 @@ class VAE(pl.LightningModule):
         samples = noise * torch.exp(log_sigma) + mu
 
         # decoding
-        generated_imgs = self.decoder(samples).reshape(
+        fake_imgs = self.decoder(samples)
+        fake_imgs = fake_imgs.reshape(
             -1, self.hparams.channels, self.hparams.height, self.hparams.width
         )
-        recon_loss = F.mse_loss(generated_imgs, imgs, reduction="sum") / N
+        recon_loss = F.mse_loss(fake_imgs, imgs, reduction="sum") / N
 
         total_loss = self.hparams.reg_weight * reg_loss + recon_loss
 
@@ -112,7 +112,7 @@ class VAE(pl.LightningModule):
         if self.global_step % 50 == 0:
             sample_images = self()
             self.log_images(imgs, "recon/source_image")
-            self.log_images(generated_imgs, "recon/output_image")
+            self.log_images(fake_imgs, "recon/output_image")
             self.log_images(sample_images, "sample/output_image")
 
         return total_loss

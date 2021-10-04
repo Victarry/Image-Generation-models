@@ -1,0 +1,7 @@
+_target_: src.datamodules.celeba.CelebADataModule
+channels: 3
+width: 64
+height: 64
+data_dir: ${data_dir}
+batch_size: 128
+num_workers: 8

@@ -35,11 +35,22 @@ class GAN(pl.LightningModule):
         self.save_hyperparameters()
 
         # networks
-        self.generator = hydra.utils.instantiate(netG)
-        self.discriminator = hydra.utils.instantiate(netD)
+        self.generator = hydra.utils.instantiate(
+            netG, input_channel=latent_dim, output_channel=channels
+        )
+        self.discriminator = hydra.utils.instantiate(
+            netD, input_channel=channels, output_channel=1
+        )
 
         # model info
         self.console = utils.get_logger()
+
+    def forward(self, z):
+        output = self.generator(z)
+        output = output.reshape(
+            z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
+        )
+        return output
 
     def get_grid_images(self, imgs):
         imgs = imgs.reshape(
@@ -56,13 +67,6 @@ class GAN(pl.LightningModule):
     def log_images(self, imgs, name):
         grid = self.get_grid_images(imgs)
         self.logger.experiment.add_image(name, grid, self.global_step)
-
-    def forward(self, z):
-        output = self.generator(z)
-        output = output.reshape(
-            z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
-        )
-        return output
 
     def on_train_epoch_end(self):
         result_path = Path("results")
@@ -82,12 +86,12 @@ class GAN(pl.LightningModule):
             return F.mse_loss(y_hat, y)
 
     def training_step(self, batch, batch_idx, optimizer_idx):
-        imgs, _ = batch
+        imgs, _ = batch  # (N, C, H, W)
         if self.hparams.input_normalize:
             imgs = imgs * 2 - 1
 
         # sample noise
-        z = torch.randn(imgs.shape[0], self.hparams.latent_dim)
+        z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
         z = z.type_as(imgs)
 
         # train generator, pytorch_lightning will automatically set discriminator requires_gard as False

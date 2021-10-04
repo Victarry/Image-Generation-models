@@ -1,7 +1,9 @@
 decoder:
   _target_: src.networks.basic.MLPDecoder
-  input_dim: ${model.latent_dim}
-  output_dim: 784
+  input_channel: null
+  output_channel: null
+  width: ${datamodule.width}
+  height: ${datamodule.height}
   hidden_dims:
     - 256
     - 512
@@ -10,8 +12,10 @@ decoder:
   batch_norm: True
 encoder:
   _target_: src.networks.basic.MLPEncoder
-  input_dim: 784
-  output_dim: ${model.encoder_dim}
+  input_channel: null
+  output_channel: null
+  width: ${datamodule.width}
+  height: ${datamodule.height}
   hidden_dims:
     - 1024
     - 512

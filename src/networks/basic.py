@@ -1,10 +1,14 @@
 from torch import nn
+from .base import BaseNetwork
 
 
 class LinearAct(nn.Module):
-    def __init__(self, input_dim, output_dim, act="relu", dropout=0, batch_norm=False):
+    def __init__(
+        self, input_channel, output_channel, act="relu", dropout=0, batch_norm=False
+    ):
         super().__init__()
-        self.fc = nn.Linear(input_dim, output_dim)
+
+        self.fc = nn.Linear(input_channel, output_channel)
         self.dropout = nn.Dropout(dropout)
         if act == "relu":
             self.act = nn.ReLU(inplace=True)
@@ -19,7 +23,7 @@ class LinearAct(nn.Module):
         else:
             raise NotImplementedError
         if batch_norm:
-            self.bn = nn.BatchNorm1d(output_dim)
+            self.bn = nn.BatchNorm1d(output_channel)
         else:
             self.bn = nn.Identity()
 
@@ -28,15 +32,23 @@ class LinearAct(nn.Module):
         return self.dropout(self.act(self.bn(self.fc(x))))
 
 
-class MLPEncoder(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dims, dropout=0, batch_norm=False):
-        super().__init__()
+class MLPEncoder(BaseNetwork):
+    def __init__(
+        self,
+        input_channel,
+        output_channel,
+        hidden_dims,
+        width,
+        height,
+        dropout=0,
+        batch_norm=False,
+    ):
+        super().__init__(input_channel, output_channel)
 
-        dims = [input_dim, *hidden_dims]
         self.model = nn.Sequential(
             # first layer not use batch_norm
             LinearAct(
-                input_dim,
+                input_channel * width * height,
                 hidden_dims[0],
                 "leaky_relu",
                 dropout=dropout,
@@ -44,9 +56,9 @@ class MLPEncoder(nn.Module):
             ),
             *[
                 LinearAct(x, y, "leaky_relu", dropout=dropout, batch_norm=batch_norm)
-                for x, y in zip(dims[1:-1], dims[2:])
+                for x, y in zip(hidden_dims[:-1], hidden_dims[1:])
             ],
-            LinearAct(hidden_dims[-1], output_dim, "identity", batch_norm=False)
+            LinearAct(hidden_dims[-1], output_channel, "identity", batch_norm=False)
         )
 
     def forward(self, x):
@@ -55,30 +67,44 @@ class MLPEncoder(nn.Module):
         return self.model(x)
 
 
-class MLPDecoder(nn.Module):
+class MLPDecoder(BaseNetwork):
     def __init__(
-        self, input_dim, output_dim, hidden_dims, output_act, batch_norm=False
+        self,
+        input_channel,
+        output_channel,
+        hidden_dims,
+        width,
+        height,
+        output_act,
+        batch_norm=False,
     ):
-        super().__init__()
+        super().__init__(input_channel, output_channel)
+        self.width = width
+        self.height = height
 
-        dims = [input_dim, *hidden_dims]
+        dims = [input_channel, *hidden_dims]
         self.model = nn.Sequential(
             *[
                 LinearAct(x, y, "relu", batch_norm=batch_norm)
                 for x, y in zip(dims[:-1], dims[1:])
             ],
-            LinearAct(hidden_dims[-1], output_dim, act=output_act, batch_norm=False)
+            LinearAct(
+                hidden_dims[-1],
+                output_channel * width * height,
+                act=output_act,
+                batch_norm=False,
+            )
         )
 
     def forward(self, x):
-        return self.model(x)
+        return self.model(x).reshape(-1, self.output_channel, self.width, self.height)
 
 
-class ConvGenerator(nn.Module):
-    def __init__(self, latent_dim, output_channel, ngf):
-        super().__init__()
+class ConvDecoder(BaseNetwork):
+    def __init__(self, input_channel, output_channel, ngf):
+        super().__init__(input_channel, output_channel)
         self.network = nn.Sequential(
-            nn.ConvTranspose2d(latent_dim, ngf * 4, 4, 1, 0, bias=False),
+            nn.ConvTranspose2d(input_channel, ngf * 4, 4, 1, 0, bias=False),
             nn.BatchNorm2d(ngf * 4),
             nn.ReLU(True),
             nn.ConvTranspose2d(ngf * 4, ngf * 2, 3, 2, 1, bias=False),
@@ -91,15 +117,16 @@ class ConvGenerator(nn.Module):
             nn.Tanh(),
         )
 
-    def forward(self, input):
-        N = input.shape[0]
-        output = self.network(input.reshape(N, -1, 1, 1))
+    def forward(self, x):
+        N = x.shape[0]
+        x = x.reshape(N, -1, 1, 1)
+        output = self.network(x)
         return output
 
 
-class ConvDiscriminator(nn.Module):
+class ConvEncoder(BaseNetwork):
     def __init__(self, input_channel, output_channel, ndf):
-        super().__init__()
+        super().__init__(input_channel, output_channel)
         self.output_channel = output_channel
         self.network = nn.Sequential(
             nn.Conv2d(input_channel, ndf, 4, 2, 1, bias=False),
@@ -113,6 +140,6 @@ class ConvDiscriminator(nn.Module):
             nn.Conv2d(ndf * 4, output_channel, 4, 1, 0, bias=False),
         )
 
-    def forward(self, input):
-        output = self.network(input)
-        return output.view(-1, self.output_channel)
+    def forward(self, x):
+        output = self.network(x)
+        return output.reshape(-1, self.output_channel)

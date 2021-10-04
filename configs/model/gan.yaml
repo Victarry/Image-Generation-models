@@ -1,8 +1,8 @@
 _target_: src.models.gan.GAN
 loss_mode: vanilla
-channels: 1
-width: 28
-height: 28
+channels: ${datamodule.channels}
+width: ${datamodule.width}
+height: ${datamodule.height}
 latent_dim: 100
 encoder_dim: 1
 lrG: 0.0002
