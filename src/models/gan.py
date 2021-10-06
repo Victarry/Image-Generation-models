@@ -2,18 +2,19 @@
 Traditional Unconditional GANs, with different loss modes including:
 1. Binary Cross Entroy (vanilla_gan)
 2. Least Square Error(lsgan)
-3. Wassertain GAN(wgan)
 """
-import pytorch_lightning as pl
-import torchvision
-import torch
-import torch.nn.functional as F
-from src.utils import utils
-import hydra
 from pathlib import Path
 
+import hydra
+import pytorch_lightning as pl
+import torch
+import torch.nn.functional as F
+import torchvision
+from src.utils import utils
+from .base import BaseModel
 
-class GAN(pl.LightningModule):
+
+class GAN(BaseModel):
     def __init__(
         self,
         channels,
@@ -42,48 +43,12 @@ class GAN(pl.LightningModule):
             netD, input_channel=channels, output_channel=1
         )
 
-        # model info
-        self.console = utils.get_logger()
-
     def forward(self, z):
         output = self.generator(z)
         output = output.reshape(
             z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
         )
         return output
-
-    def get_grid_images(self, imgs):
-        imgs = imgs.reshape(
-            -1, self.hparams.channels, self.hparams.height, self.hparams.width
-        )
-        if self.hparams.input_normalize:
-            grid = torchvision.utils.make_grid(
-                imgs[:64], normalize=True, value_range=(-1, 1)
-            )
-        else:
-            grid = torchvision.utils.make_grid(imgs[:64], normalize=False)
-        return grid
-
-    def log_images(self, imgs, name):
-        grid = self.get_grid_images(imgs)
-        self.logger.experiment.add_image(name, grid, self.global_step)
-
-    def on_train_epoch_end(self):
-        result_path = Path("results")
-        result_path.mkdir(parents=True, exist_ok=True)
-        if hasattr(self, "z"):
-            z = self.z
-        else:
-            self.z = z = torch.randn(64, self.hparams.latent_dim).to(self.device)
-        imgs = self.generator(z)
-        grid = self.get_grid_images(imgs)
-        torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
-
-    def adversarial_loss(self, y_hat, y):
-        if self.hparams.loss_mode == "vanilla":
-            return F.binary_cross_entropy_with_logits(y_hat, y)
-        elif self.hparams.loss_mode == "lsgan":
-            return F.mse_loss(y_hat, y)
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch  # (N, C, H, W)
@@ -93,6 +58,8 @@ class GAN(pl.LightningModule):
         # sample noise
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
         z = z.type_as(imgs)
+
+        self.console.info(f"{batch_idx}, {optimizer_idx}")
 
         # train generator, pytorch_lightning will automatically set discriminator requires_gard as False
         if optimizer_idx == 0:
@@ -135,6 +102,23 @@ class GAN(pl.LightningModule):
 
             return d_loss
 
+    def on_train_epoch_end(self):
+        result_path = Path("results")
+        result_path.mkdir(parents=True, exist_ok=True)
+        if hasattr(self, "z"):
+            z = self.z
+        else:
+            self.z = z = torch.randn(64, self.hparams.latent_dim).to(self.device)
+        imgs = self.generator(z)
+        grid = self.get_grid_images(imgs)
+        torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
+
+    def adversarial_loss(self, y_hat, y):
+        if self.hparams.loss_mode == "vanilla":
+            return F.binary_cross_entropy_with_logits(y_hat, y)
+        elif self.hparams.loss_mode == "lsgan":
+            return F.mse_loss(y_hat, y)
+
     def configure_optimizers(self):
         lrG = self.hparams.lrG
         lrD = self.hparams.lrD
@@ -150,5 +134,5 @@ class GAN(pl.LightningModule):
             )
         elif self.hparams.optim == "sgd":
             opt_g = torch.optim.SGD(self.generator.parameters(), lr=lrG)
-            opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=lrD)
+            opt_d = torch.optim.SGD(self.discriminator.parameters(), lr=lrD)
         return [opt_g, opt_d]

@@ -36,9 +36,6 @@ class VAE(pl.LightningModule):
             encoder, input_channel=channels, output_channel=2 * latent_dim
         )
 
-        # model info
-        self.console = utils.get_logger()
-
     def forward(self):
         noise = torch.randn(64, self.hparams.latent_dim).to(self.device)
 

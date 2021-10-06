@@ -41,7 +41,7 @@ class MLPEncoder(BaseNetwork):
         width,
         height,
         dropout=0,
-        batch_norm=False,
+        batch_norm=True,
     ):
         super().__init__(input_channel, output_channel)
 
@@ -76,7 +76,7 @@ class MLPDecoder(BaseNetwork):
         width,
         height,
         output_act,
-        batch_norm=False,
+        batch_norm=True,
     ):
         super().__init__(input_channel, output_channel)
         self.width = width
