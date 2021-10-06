@@ -8,10 +8,10 @@ image:https://img.shields.io/badge/code%20style-black-black.svg?style=for-the-ba
 
 Structurally configured architectures for differents generative methods with different models and datasets.
 
-== Implemented Method
+== Implemented Methods
 
 === GAN
-Paper: _Generative Adversarial Nets_ , https://arxiv.org/abs/1406.2661[arxiv]
+Paper: _Generative Adversarial Nets_  https://arxiv.org/abs/1406.2661[arxiv]
 
 ==== Results
 [cols="3*", options="header"] 
@@ -21,29 +21,27 @@ Paper: _Generative Adversarial Nets_ , https://arxiv.org/abs/1406.2661[arxiv]
 |Convolution Network
 
 | MNIST
-| image:assets/gan/mnist_mlp.gif[mnist_mlp]
-| image:assets/gan/mnist_conv.gif[mnist_conv]
+| image:assets/gan/mnist_mlp.gif[mnist_mlp, 400, 400]
+| image:assets/gan/mnist_conv.gif[mnist_conv, 400, 400]
 
 | CelebA
 | TODO
-| image:assets/gan/celeba_conv.gif[cleba_conv]
+| image:assets/gan/celeba_conv.gif[cleba_conv, 400, 400]
 |===
 
 [source, bash]
 ----
-python run.py experiment=gan/vanilla_mlp_mnist
-python run.py experiment=gan/vanilla_conv_mnist
+python run.py -m experiment='glob(vanilla*)'
 ----
 
 === VAE
-Paper: _Auto-Encoding Variational Bayes_ , https://arxiv.org/abs/1312.6114[arxiv]
+Paper: _Auto-Encoding Variational Bayes_  https://arxiv.org/abs/1312.6114[arxiv]
 
 ==== Results
 
 [source, bash]
 ----
-python run.py experiment=vae/mlp_mnist
-python run.py experiment=vae/conv_mnist
+python run.py -m experiment='glob(vae*)'
 ----
 
 [cols="3*", options="header"] 
@@ -53,11 +51,34 @@ python run.py experiment=vae/conv_mnist
 |Convolution Network
 
 | MNIST
-| image:assets/vae/mnist_mlp.gif[mnist_mlp]
-| image:assets/vae/mnist_conv.gif[mnist_conv]
+| image:assets/vae/mnist_mlp.gif[mnist_mlp,400,400]
+| image:assets/vae/mnist_conv.gif[mnist_conv, 400, 400]
 
 |CelebA
-| image:assets/vae/celeba_mlp.gif[celeba_mlp]
-| image:assets/vae/celeba_conv.gif[celeba_conv]
+| image:assets/vae/celeba_mlp.gif[celeba_mlp, 400, 400]
+| image:assets/vae/celeba_conv.gif[celeba_conv, 400, 400]
 |===
 
+=== WGAN
+
+Paper: _Wasserstein GAN_ https://arxiv.org/abs/1701.07875[arxiv]
+
+[source, bash]
+----
+python run.py -m experiment='glob(wgan*)'
+----
+
+[cols="3*", options="header"] 
+|===
+|Dataset
+|MLP network
+|Convolution Network
+
+| MNIST
+| TODO
+| image:assets/wgan/mnist_conv.gif[mnist_conv, 400, 400]
+
+|CelebA
+| TODO
+| image:assets/wgan/celeba_conv.gif[celea_conv, 400, 400]
+|===

@@ -1,0 +1,19 @@
+_target_: src.models.wgan.WGAN
+# data
+channels: ${datamodule.channels}
+width: ${datamodule.width}
+height: ${datamodule.height}
+# model parameters
+latent_dim: 100
+encoder_dim: 1
+lrG: 2e-4
+lrD: 2e-4
+b1: 0.5
+b2: 0.999
+optim: rmsprop
+input_normalize: True
+netG: ${networks.decoder}
+netD: ${networks.encoder}
+# special for wgan
+n_critic: 5
+clip_weight: 0.01
