@@ -1,4 +1,6 @@
 from torch import nn
+
+from src.networks.conv64 import get_norm_layer
 from .base import BaseNetwork
 
 
@@ -101,17 +103,17 @@ class MLPDecoder(BaseNetwork):
 
 
 class ConvDecoder(BaseNetwork):
-    def __init__(self, input_channel, output_channel, ngf):
+    def __init__(self, input_channel, output_channel, ngf, batch_norm=True):
         super().__init__(input_channel, output_channel)
         self.network = nn.Sequential(
             nn.ConvTranspose2d(input_channel, ngf * 4, 4, 1, 0, bias=False),
-            nn.BatchNorm2d(ngf * 4),
+            get_norm_layer(batch_norm)(ngf * 4),
             nn.ReLU(True),
             nn.ConvTranspose2d(ngf * 4, ngf * 2, 3, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf * 2),
+            get_norm_layer(batch_norm)(ngf * 2),
             nn.ReLU(True),
             nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf),
+            get_norm_layer(batch_norm)(ngf),
             nn.ReLU(True),
             nn.ConvTranspose2d(ngf, output_channel, 4, 2, 1, bias=False),
             nn.Tanh(),
@@ -125,17 +127,17 @@ class ConvDecoder(BaseNetwork):
 
 
 class ConvEncoder(BaseNetwork):
-    def __init__(self, input_channel, output_channel, ndf):
+    def __init__(self, input_channel, output_channel, ndf, batch_norm=True):
         super().__init__(input_channel, output_channel)
         self.output_channel = output_channel
         self.network = nn.Sequential(
             nn.Conv2d(input_channel, ndf, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 2),
+            get_norm_layer(batch_norm)(ndf * 2),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(ndf * 2, ndf * 4, 3, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 4),
+            get_norm_layer(batch_norm)(ndf * 4),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(ndf * 4, output_channel, 4, 1, 0, bias=False),
         )

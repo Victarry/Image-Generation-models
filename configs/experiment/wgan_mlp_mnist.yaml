@@ -1,0 +1,14 @@
+## 实验踩过的坑
+## 
+## adam -> rmsprop: 但实际上区别不大
+## batch_norm还是很关键
+## learning rate: 
+# @package _global_
+defaults:
+  - override /model: wgan
+  - override /networks: mlp
+  - override /datamodule: mnist
+
+trainer:
+  max_epochs: 50
+exp_name: wgan_mlp_mnist

@@ -5,9 +5,9 @@ decoder:
   width: ${datamodule.width}
   height: ${datamodule.height}
   hidden_dims:
-    - 256
     - 512
-    - 1024
+    - 512
+    - 512
   output_act: tanh
   batch_norm: True
 encoder:
@@ -17,8 +17,8 @@ encoder:
   width: ${datamodule.width}
   height: ${datamodule.height}
   hidden_dims:
-    - 1024
     - 512
-    - 256
+    - 512
+    - 512
   dropout: 0
   batch_norm: True
