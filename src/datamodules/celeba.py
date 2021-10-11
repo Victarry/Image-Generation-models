@@ -36,16 +36,12 @@ class CelebADataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         # Assign train/val datasets for use in dataloaders
-        if stage == "fit" or stage is None:
-            self.train_data = CelebA(
-                self.data_dir, split="train", transform=self.transform
-            )
-
-        # Assign test dataset for use in dataloader(s)
-        if stage == "test" or stage is None:
-            self.test_data = CelebA(
-                self.data_dir, split="test", transform=self.transform
-            )
+        self.train_data = CelebA(
+            self.data_dir, split="train", transform=self.transform
+        )
+        self.test_data = CelebA(
+            self.data_dir, split="test", transform=self.transform
+        )
 
     def train_dataloader(self):
         return DataLoader(

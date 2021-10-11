@@ -1,0 +1,14 @@
+_target_: src.models.vqvae.VQVAE
+channels: ${datamodule.channels}
+width: ${datamodule.width}
+height: ${datamodule.height}
+latent_dim: 64
+lr: 0.001 # a proper learning rate will converge faster
+b1: 0.9
+b2: 0.999
+beta: 0.25
+K: 512
+optim: adam
+input_normalize: True
+encoder: ${networks.encoder}
+decoder: ${networks.decoder}

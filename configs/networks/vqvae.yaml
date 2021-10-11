@@ -1,0 +1,8 @@
+decoder:
+  _target_: src.networks.vqvae.Decoder
+  input_channel: null
+  output_channel: null
+encoder:
+  _target_: src.networks.vqvae.Encoder
+  input_channel: null
+  output_channel: null
