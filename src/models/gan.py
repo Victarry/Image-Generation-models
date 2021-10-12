@@ -59,8 +59,6 @@ class GAN(BaseModel):
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
         z = z.type_as(imgs)
 
-        self.console.info(f"{batch_idx}, {optimizer_idx}")
-
         # train generator, pytorch_lightning will automatically set discriminator requires_gard as False
         if optimizer_idx == 0:
 

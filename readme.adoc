@@ -1,11 +1,11 @@
 = Colletions of Generative Models
 :img-size: 200
 
-image:https://img.shields.io/badge/-Python 3.7--3.9-blue?style=for-the-badge&logo=python&logoColor=white[python, link={https://pytorch.org/get-started/locally/}]
-image:https://img.shields.io/badge/-PyTorch 1.8+-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white[pytorch]
-image:https://img.shields.io/badge/-Lightning 1.3+-792ee5?style=for-the-badge&logo=pytorchlightning&logoColor=white[pytorch_lignthing]
-image:https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=for-the-badge&labelColor=gray[hydra]
-image:https://img.shields.io/badge/code%20style-black-black.svg?style=for-the-badge&labelColor=gray[black]
+image:https://img.shields.io/badge/-Python 3.7--3.9-blue?style=for-the-badge&logo=python&logoColor=white[python, link=https://pytorch.org/get-started/locally/]
+image:https://img.shields.io/badge/-PyTorch 1.8+-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white[pytorch, link=https://pytorch.org/]
+image:https://img.shields.io/badge/-Lightning 1.3+-792ee5?style=for-the-badge&logo=pytorchlightning&logoColor=white[pytorch_lignthing, link=https://www.pytorchlightning.ai/]
+image:https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=for-the-badge&labelColor=gray[hydra, link=https://hydra.cc/]
+image:https://img.shields.io/badge/code%20style-black-black.svg?style=for-the-badge&labelColor=gray[black, link=https://github.com/psf/black]
 
 Structurally configured architectures for differents generative methods with different models and datasets.
 
