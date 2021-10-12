@@ -1,0 +1,10 @@
+decoder:
+  _target_: src.networks.conv32.Decoder
+  input_channel: null
+  output_channel: null
+  ngf: 64
+encoder:
+  _target_: src.networks.conv32.Encoder
+  input_channel: null
+  output_channel: null
+  ndf: 64
