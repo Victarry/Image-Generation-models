@@ -14,7 +14,11 @@ Structurally configured architectures for differents generative methods with dif
 === GAN
 Paper: _Generative Adversarial Nets_  https://arxiv.org/abs/1406.2661[arxiv]
 
-==== Results
+[source, bash]
+----
+python run.py -m experiment='glob(vanilla*)'
+----
+
 [cols="3*", options="header"] 
 |===
 |Dataset
@@ -30,15 +34,10 @@ Paper: _Generative Adversarial Nets_  https://arxiv.org/abs/1406.2661[arxiv]
 | image:assets/gan/celeba_conv.gif[cleba_conv, {img-size}, {img-size}]
 |===
 
-[source, bash]
-----
-python run.py -m experiment='glob(vanilla*)'
-----
 
 === VAE
 Paper: _Auto-Encoding Variational Bayes_  https://arxiv.org/abs/1312.6114[arxiv]
 
-==== Results
 
 [source, bash]
 ----
@@ -88,6 +87,10 @@ python run.py -m experiment='glob(wgan*)'
 
 Paper: _Neural Discrete Representation Learning_  https://arxiv.org/abs/1711.00937[arxiv]
 
+[source, bash]
+----
+python run.py -m experiment='glob(vqvae*)'
+----
 
 [cols="3*", options="header"] 
 |===
@@ -104,11 +107,17 @@ Paper: _Neural Discrete Representation Learning_  https://arxiv.org/abs/1711.009
 | image:assets/vqvae/celeba_conv.gif[celea_conv, {img-size}, {img-size}]
 |===
 
+
 _Note: Sampling of VQ-VAE is different from vanilla vae and is not implemened, this results only shows the reconstruction results of test images._
 
 === WGAN-GP
 
 Paper: _Improved Training of Wasserstein GANs_ NIPS 2017 https://arxiv.org/abs/1704.00028[arxiv]
+
+[source, bash]
+----
+python run.py -m experiment='glob(wgangp*)'
+----
 
 
 [cols="3*", options="header"] 
