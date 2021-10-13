@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - override /model: vqvae
+  - override /networks: vqvae
+  - override /datamodule: cifar10
+
+trainer:
+  max_epochs: 100
+exp_name: vqvae_conv_cifar10
