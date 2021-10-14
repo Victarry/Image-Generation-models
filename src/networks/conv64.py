@@ -1,5 +1,7 @@
 from torch import nn
+import torch
 from .base import BaseNetwork
+from .utils import FeatureExtractor
 
 
 def get_norm_layer(batch_norm=True):
@@ -42,8 +44,16 @@ class Decoder(BaseNetwork):
 
 
 class Encoder(BaseNetwork):
-    def __init__(self, input_channel, output_channel, ndf, batch_norm=True):
+    def __init__(
+        self, input_channel, output_channel, ndf, batch_norm=True, return_features=False
+    ):
         super().__init__(input_channel, output_channel)
+        self.return_features = return_features
+
+        if return_features:
+            self.feature_extractor = FeatureExtractor()
+        else:
+            self.feature_extractor = lambda x: x
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64
             nn.Conv2d(input_channel, ndf, 4, 2, 1, bias=False),
@@ -55,7 +65,7 @@ class Encoder(BaseNetwork):
             # state size. (ndf*2) x 16 x 16
             nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
             get_norm_layer(batch_norm)(ndf * 4),
-            nn.LeakyReLU(0.2, inplace=True),
+            self.feature_extractor(nn.LeakyReLU(0.2, inplace=True)),  # extract features
             # state size. (ndf*4) x 8 x 8
             nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
             get_norm_layer(batch_norm)(ndf * 8),
@@ -66,4 +76,13 @@ class Encoder(BaseNetwork):
 
     def forward(self, input):
         N = input.shape[0]
-        return self.main(input).reshape(N, -1)
+        if self.return_features:
+            self.feature_extractor.clean()
+            output = self.main(input).reshape(N, -1)
+            features = torch.cat(
+                [torch.ravel(x) for x in self.feature_extractor.features]
+            )
+            return output, features
+        else:
+            output = self.main(input).reshape(N, -1)
+            return output

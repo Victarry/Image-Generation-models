@@ -102,6 +102,7 @@ class VAE(pl.LightningModule):
         fake_imgs = fake_imgs.reshape(
             -1, self.hparams.channels, self.hparams.height, self.hparams.width
         )
+        # NOTE: use sum instead of mean to support adequate gradient for reconstruction, otherwise output image will converge to a single mode
         recon_loss = F.mse_loss(fake_imgs, imgs, reduction="sum") / N
 
         total_loss = self.hparams.reg_weight * reg_loss + recon_loss

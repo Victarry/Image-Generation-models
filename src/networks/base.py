@@ -18,5 +18,3 @@ class BaseNetwork(nn.Module):
         super().__init__()
         self.input_channel = input_channel
         self.output_channel = output_channel
-        checker = ShapeChecker(input_channel, output_channel)
-        self.register_forward_hook(checker)

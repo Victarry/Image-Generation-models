@@ -1,7 +1,9 @@
 from torch import nn
+import torch
 
 from src.networks.conv64 import get_norm_layer
 from .base import BaseNetwork
+from .utils import FeatureExtractor
 
 
 class LinearAct(nn.Module):
@@ -44,9 +46,14 @@ class MLPEncoder(BaseNetwork):
         height,
         dropout=0,
         batch_norm=True,
+        return_features=False,
     ):
         super().__init__(input_channel, output_channel)
-
+        self.return_features = return_features
+        if return_features:
+            self.feature_extractor = FeatureExtractor()
+        else:
+            self.feature_extractor = lambda x: x
         self.model = nn.Sequential(
             # first layer not use batch_norm
             LinearAct(
@@ -60,13 +67,23 @@ class MLPEncoder(BaseNetwork):
                 LinearAct(x, y, "leaky_relu", dropout=dropout, batch_norm=batch_norm)
                 for x, y in zip(hidden_dims[:-1], hidden_dims[1:])
             ],
-            LinearAct(hidden_dims[-1], output_channel, "identity", batch_norm=False)
+        )
+        self.feature_extractor(self.model)
+        self.classifier = LinearAct(
+            hidden_dims[-1], output_channel, "identity", batch_norm=False
         )
 
     def forward(self, x):
         N = x.shape[0]
         x = x.reshape(N, -1)
-        return self.model(x)
+        if self.return_features:
+            self.feature_extractor.clean()
+            output = self.classifier(self.model(x))
+            return output, torch.cat(
+                [torch.ravel(x) for x in self.feature_extractor.features]
+            )
+        else:
+            return self.classifier(self.model(x))
 
 
 class MLPDecoder(BaseNetwork):
@@ -95,7 +112,7 @@ class MLPDecoder(BaseNetwork):
                 output_channel * width * height,
                 act=output_act,
                 batch_norm=False,
-            )
+            ),
         )
 
     def forward(self, x):
@@ -127,8 +144,15 @@ class ConvDecoder(BaseNetwork):
 
 
 class ConvEncoder(BaseNetwork):
-    def __init__(self, input_channel, output_channel, ndf, batch_norm=True):
+    def __init__(
+        self, input_channel, output_channel, ndf, batch_norm=True, return_features=False
+    ):
         super().__init__(input_channel, output_channel)
+        self.return_features = return_features
+        if return_features:
+            self.feature_extractor = FeatureExtractor()
+        else:
+            self.feature_extractor = lambda x: x
         self.output_channel = output_channel
         self.network = nn.Sequential(
             nn.Conv2d(input_channel, ndf, 4, 2, 1, bias=False),
@@ -138,10 +162,16 @@ class ConvEncoder(BaseNetwork):
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(ndf * 2, ndf * 4, 3, 2, 1, bias=False),
             get_norm_layer(batch_norm)(ndf * 4),
-            nn.LeakyReLU(0.2, inplace=True),
+            self.feature_extractor(nn.LeakyReLU(0.2, inplace=True)),
             nn.Conv2d(ndf * 4, output_channel, 4, 1, 0, bias=False),
         )
 
     def forward(self, x):
-        output = self.network(x)
-        return output.reshape(-1, self.output_channel)
+        if self.return_features:
+            self.feature_extractor.clean()
+            output = self.network(x).reshape(-1, self.output_channel)
+            return output, torch.cat(
+                [torch.ravel(x) for x in self.feature_extractor.features]
+            )
+        else:
+            return self.network(x).reshape(-1, self.output_channel)
