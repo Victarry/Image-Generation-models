@@ -1,0 +1,13 @@
+# @package _global_
+defaults:
+  - override /model: vae_gan
+  - override /networks: conv_32
+  - override /datamodule: cifar10
+
+model:
+  loss_mode: vanilla
+  recon_weight: 0.01
+
+trainer:
+  max_epochs: 100
+exp_name: vaegan_conv_cifar10

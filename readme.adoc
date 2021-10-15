@@ -147,3 +147,35 @@ python run.py -m experiment='glob(wgangp*)'
 | TODO
 | image:assets/wgan_gp/celeba_conv.gif[celea_conv, {img-size}, {img-size}]
 |===
+
+=== VAE-GAN
+
+Paper: _Autoencoding beyond pixels using a learned similarity metric_ https://arxiv.org/abs/1512.09300[arxiv]
+
+[source, bash]
+----
+python run.py -m experiment='glob(vaegan*)'
+----
+
+[cols="3*", options="header"] 
+|===
+|Dataset
+|MLP network
+|Convolution Network
+
+| MNIST
+| N/A
+| image:assets/vaegan/mnist_conv.gif[mnist_conv, {img-size}, {img-size}]
+
+| CelebA
+| N/A
+| image:assets/vaegan/celeba_conv.gif[celea_conv, {img-size}, {img-size}]
+
+| CIFAR10
+| N/A
+| image:assets/vaegan/cifar10_conv.gif[cifar10_conv, {img-size}, {img-size}]
+|===
+
+=== BiGAN/AIL
+
+Paper: _Adversarial Feature Learning_ https://arxiv.org/abs/1605.09782[arxiv]

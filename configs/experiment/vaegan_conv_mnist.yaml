@@ -1,0 +1,10 @@
+# @package _global_
+defaults:
+  - override /model: vae_gan
+  - override /networks: conv_mnist
+  - override /datamodule: mnist
+
+model:
+  loss_mode: vanilla
+  recon_weight: 0.01
+exp_name: vaegan_conv_mnist
