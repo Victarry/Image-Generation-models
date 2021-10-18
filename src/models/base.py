@@ -1,6 +1,7 @@
 from pytorch_lightning import LightningModule
 import torchvision
 from src.utils.utils import get_logger
+import torch
 
 
 class BaseModel(LightningModule):
@@ -23,3 +24,9 @@ class BaseModel(LightningModule):
     def log_images(self, imgs, name):
         grid = self.get_grid_images(imgs)
         self.logger.experiment.add_image(name, grid, self.global_step)
+
+    def image_float2int(self, imgs):
+        if self.hparams.input_normalize:
+            imgs = (imgs + 1) / 2
+        imgs = (imgs * 255).to(torch.uint8)
+        return imgs

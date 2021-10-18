@@ -12,6 +12,7 @@ import torch.nn.functional as F
 import torchvision
 from src.utils import utils
 from .base import BaseModel
+import torchmetrics
 
 
 class GAN(BaseModel):
@@ -110,6 +111,19 @@ class GAN(BaseModel):
         imgs = self.generator(z)
         grid = self.get_grid_images(imgs)
         torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
+
+    def on_validation_epoch_start(self) -> None:
+        self.fid = torchmetrics.FID().to(self.device)
+
+    def validation_step(self, batch, batch_idx):
+        imgs, _ = batch
+        self.fid.update(self.image_float2int(imgs), real=True)
+        z = torch.randn(imgs.shape[0], self.hparams.latent_dim).to(self.device)
+        fake_imgs = self(z)
+        self.fid.update(self.image_float2int(fake_imgs), real=False)
+
+    def on_validation_epoch_end(self):
+        self.log("metrics/fid", self.fid.compute())
 
     def adversarial_loss(self, y_hat, y):
         if self.hparams.loss_mode == "vanilla":

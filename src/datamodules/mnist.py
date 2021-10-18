@@ -36,9 +36,7 @@ class MNISTDataModule(pl.LightningDataModule):
         # Assign train/val datasets for use in dataloaders
         mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
         self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
-        self.mnist_test = MNIST(
-            self.data_dir, train=False, transform=self.transform
-        )
+        self.mnist_test = MNIST(self.data_dir, train=False, transform=self.transform)
 
     def train_dataloader(self):
         return DataLoader(
@@ -48,10 +46,10 @@ class MNISTDataModule(pl.LightningDataModule):
             shuffle=True,
         )
 
-    # def val_dataloader(self):
-    #     return DataLoader(
-    #         self.mnist_val, batch_size=self.batch_size, num_workers=self.num_workers
-    #     )
+    def val_dataloader(self):
+        return DataLoader(
+            self.mnist_val, batch_size=self.batch_size, num_workers=self.num_workers
+        )
 
     def test_dataloader(self):
         return DataLoader(
