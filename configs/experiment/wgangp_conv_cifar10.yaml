@@ -1,0 +1,19 @@
+# @package _global_
+defaults:
+  - override /model: wgan_gp
+  - override /networks: conv_32
+  - override /datamodule: cifar10
+
+networks:
+  encoder:
+    batch_norm: False
+  decoder:
+    batch_norm: False
+
+model:
+  lrD: 1e-3
+  lrG: 1e-3
+
+trainer:
+  max_epochs: 100
+exp_name: wgangp_conv_cifar10
