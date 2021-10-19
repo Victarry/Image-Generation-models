@@ -47,6 +47,9 @@ class MLPEncoder(BaseNetwork):
         dropout=0,
         batch_norm=True,
         return_features=False,
+        first_batch_norm=False,
+        last_batch_norm=False,
+        output_act="identity",
     ):
         super().__init__(input_channel, output_channel)
         self.return_features = return_features
@@ -61,7 +64,7 @@ class MLPEncoder(BaseNetwork):
                 hidden_dims[0],
                 "leaky_relu",
                 dropout=dropout,
-                batch_norm=False,
+                batch_norm=first_batch_norm,
             ),
             *[
                 LinearAct(x, y, "leaky_relu", dropout=dropout, batch_norm=batch_norm)
@@ -70,7 +73,7 @@ class MLPEncoder(BaseNetwork):
         )
         self.feature_extractor(self.model)
         self.classifier = LinearAct(
-            hidden_dims[-1], output_channel, "identity", batch_norm=False
+            hidden_dims[-1], output_channel, output_act, batch_norm=last_batch_norm
         )
 
     def forward(self, x):

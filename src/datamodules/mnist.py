@@ -46,10 +46,10 @@ class MNISTDataModule(pl.LightningDataModule):
             shuffle=True,
         )
 
-    def val_dataloader(self):
-        return DataLoader(
-            self.mnist_val, batch_size=self.batch_size, num_workers=self.num_workers
-        )
+    # def val_dataloader(self):
+    #     return DataLoader(
+    #         self.mnist_val, batch_size=self.batch_size, num_workers=self.num_workers
+    #     )
 
     def test_dataloader(self):
         return DataLoader(

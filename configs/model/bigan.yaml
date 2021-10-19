@@ -1,0 +1,17 @@
+_target_: src.models.BiGAN.BiGAN
+loss_mode: vanilla
+channels: ${datamodule.channels}
+width: ${datamodule.width}
+height: ${datamodule.height}
+hidden_dim: 512
+latent_dim: 100
+encoder_dim: 1
+lrG: 0.0002
+lrD: 0.0002
+b1: 0.5
+b2: 0.999
+optim: adam
+input_normalize: True
+encoder: ${networks.encoder}
+dis_x: ${networks.encoder}
+decoder: ${networks.decoder}

@@ -178,4 +178,4 @@ python run.py -m experiment='glob(vaegan*)'
 
 === BiGAN/AIL
 
-Paper: _Adversarial Feature Learning_ https://arxiv.org/abs/1605.09782[arxiv]
+Paper: _Adversarial Feature Learning_ https://arxiv.org/abs/1605.09782[arxiv], _Adversarially Learned Inference_ https://arxiv.org/abs/1606.00704[arxiv]
