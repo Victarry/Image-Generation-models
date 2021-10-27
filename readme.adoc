@@ -1,22 +1,21 @@
+:img-size: 200
+:toc: macro
 ++++
 <div align="center">
 ++++
 = Colletions of Generative Models
-:img-size: 200
-:toc: macro
 
 image:https://img.shields.io/badge/-Python 3.7--3.9-blue?style=for-the-badge&logo=python&logoColor=white[python, link=https://pytorch.org/get-started/locally/]
 image:https://img.shields.io/badge/-PyTorch 1.8+-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white[pytorch, link=https://pytorch.org/]
 image:https://img.shields.io/badge/-Lightning 1.3+-792ee5?style=for-the-badge&logo=pytorchlightning&logoColor=white[pytorch_lignthing, link=https://www.pytorchlightning.ai/]
 image:https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=for-the-badge&labelColor=gray[hydra, link=https://hydra.cc/]
 image:https://img.shields.io/badge/code%20style-black-black.svg?style=for-the-badge&labelColor=gray[black, link=https://github.com/psf/black]
-image:https://shields.io/badge/-Lightning--Hydra--Template-017F2F?style=flat&logo=github&labelColor=303030[template, https://github.com/ashleve/lightning-hydra-template]
 
 Structurally configured framework for typical generative methods with different networks and datasets.
 
+
 ++++
 </div>
-<br> <br>
 ++++
 
 toc::[]
