@@ -44,6 +44,7 @@ class MNISTDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
+            multiprocessing_context="fork",
         )
 
     # def val_dataloader(self):
