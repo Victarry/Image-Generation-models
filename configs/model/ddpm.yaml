@@ -1,0 +1,13 @@
+_target_: src.models.ddpm.DDPM
+channels: ${datamodule.channels}
+width: ${datamodule.width}
+height: ${datamodule.height}
+hidden_dim: 64
+lr: 0.0001
+b1: 0.9
+b2: 0.999
+timesteps: 1000
+loss_type: l1
+optim: adam
+input_normalize: True
+dim_mults: [1, 2, 4, 8]

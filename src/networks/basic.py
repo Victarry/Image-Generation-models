@@ -32,7 +32,7 @@ class LinearAct(nn.Module):
             self.bn = nn.Identity()
 
     def forward(self, x):
-        # NOTE: batch_norm should placed before activation, othervise netD will not converge
+        # NOTE: batch_norm should be placed before activation, otherwise netD will not converge
         return self.dropout(self.act(self.bn(self.fc(x))))
 
 
