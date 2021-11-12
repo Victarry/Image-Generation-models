@@ -1,0 +1,24 @@
+decoder:
+  _target_: src.networks.basic.MLPDecoder
+  input_channel: null
+  output_channel: null
+  width: ${datamodule.width}
+  height: ${datamodule.height}
+  hidden_dims:
+    - 128
+    - 256
+    - 512
+  output_act: tanh
+  batch_norm: True
+encoder:
+  _target_: src.networks.basic.MLPEncoder
+  input_channel: null
+  output_channel: null
+  width: ${datamodule.width}
+  height: ${datamodule.height}
+  hidden_dims:
+    - 128
+    - 256
+    - 512
+  dropout: 0
+  batch_norm: True
