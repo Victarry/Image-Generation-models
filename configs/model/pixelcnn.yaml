@@ -1,0 +1,6 @@
+_target_: src.models.pixelcnn.PixelCNN
+channels: ${datamodule.channels}
+width: ${datamodule.width}
+height: ${datamodule.height}
+hidden_dim: 64
+lr: 1e-3
