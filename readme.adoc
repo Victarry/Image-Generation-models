@@ -16,6 +16,7 @@ Structurally configured framework for typical generative methods with different 
 
 ++++
 </div>
+<br> <br>
 ++++
 
 toc::[]
@@ -25,7 +26,7 @@ toc::[]
 === GAN
 
 - Paper: _Generative Adversarial Nets_  https://arxiv.org/abs/1406.2661[arxiv]
-- Wiki
+- https://github.com/Victarry/Generative-models/wiki/vanilla_gan[Wiki]
 - https://github.com/Victarry/Generative-models/blob/main/src/models/gan.py[Code]
 - Commands to run experiment:
 [source, bash]
@@ -197,3 +198,4 @@ python run.py -m experiment='glob(vqvae*)'
 _Note: Sampling of VQ-VAE is different from vanilla vae and is not implemened, this results only shows the reconstruction results of test images._
 
 
+=== DDPM
