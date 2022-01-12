@@ -1,0 +1,13 @@
+_target_: src.models.aae.AAE
+channels: ${datamodule.channels}
+width: ${datamodule.width}
+height: ${datamodule.height}
+latent_dim: 128
+lr: 0.0001
+b1: 0.9
+b2: 0.999
+optim: adam
+input_normalize: True
+encoder: ${networks.encoder}
+decoder: ${networks.decoder}
+netD: ${networks.encoder}
