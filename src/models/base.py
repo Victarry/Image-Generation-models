@@ -13,20 +13,20 @@ class BaseModel(LightningModule):
         super().__init__()
         self.console = get_logger()
 
-    def get_grid_images(self, imgs):
+    def get_grid_images(self, imgs, nimgs=64, nrow=8):
         imgs = imgs.reshape(
             -1, self.hparams.channels, self.hparams.height, self.hparams.width
         )
         if self.hparams.input_normalize:
             grid = torchvision.utils.make_grid(
-                imgs[:64], normalize=True, value_range=(-1, 1)
+                imgs[:nimgs], nrow=nrow, normalize=True, value_range=(-1, 1)
             )
         else:
-            grid = torchvision.utils.make_grid(imgs[:64], normalize=False)
+            grid = torchvision.utils.make_grid(imgs[:nimgs], normalize=False, nrow=nrow)
         return grid
 
-    def log_images(self, imgs, name):
-        grid = self.get_grid_images(imgs)
+    def log_images(self, imgs, name, nimgs=64, nrow=8):
+        grid = self.get_grid_images(imgs, nimgs=nimgs, nrow=nrow)
         self.logger.experiment.add_image(name, grid, self.global_step)
 
     def image_float2int(self, imgs):

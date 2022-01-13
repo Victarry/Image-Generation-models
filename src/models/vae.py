@@ -142,6 +142,14 @@ class VAE(BaseModel):
             anchor_samples = anchor_dist.sample(sample_shape=[64]) # 64, latent_dim
             self.log_images(self(anchor_samples), "debug/anchor_images")
 
+            if self.hparams.latent_dim == 2:
+                x = torch.tensor(np.linspace(-3, 3, 20)).type_as(imgs)
+                y = torch.tensor(np.linspace(-3, 3, 20)).type_as(imgs)
+                xx, yy = torch.meshgrid([x, y])
+                latent = torch.stack([xx.reshape(-1), yy.reshape(-1)], dim=1) # (20*20, 2)
+                grid_imgs = self.decoder(latent)
+                self.log_images(grid_imgs, "sample/grid_imgs", nimgs=400, nrow=20)
+
         return -elbo 
     
     def on_train_epoch_end(self):

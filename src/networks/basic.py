@@ -5,27 +5,28 @@ from src.networks.conv64 import get_norm_layer
 from .base import BaseNetwork
 from .utils import FeatureExtractor
 
+def get_act_function(act="relu"):
+    if act == "relu":
+        return nn.ReLU(inplace=True)
+    elif act == "leaky_relu":
+        return nn.LeakyReLU(0.2, inplace=True)
+    elif act == "identity":
+        return nn.Identity()
+    elif act == "sigmoid":
+        return nn.Sigmoid()
+    elif act == "tanh":
+        return nn.Tanh()
+    else:
+        raise NotImplementedError
 
 class LinearAct(nn.Module):
     def __init__(
         self, input_channel, output_channel, act="relu", dropout=0, batch_norm=False
     ):
         super().__init__()
-
+        self.act = get_act_function(act)
         self.fc = nn.Linear(input_channel, output_channel)
         self.dropout = nn.Dropout(dropout)
-        if act == "relu":
-            self.act = nn.ReLU(inplace=True)
-        elif act == "leaky_relu":
-            self.act = nn.LeakyReLU(0.2, inplace=True)
-        elif act == "identity":
-            self.act = nn.Identity()
-        elif act == "sigmoid":
-            self.act = nn.Sigmoid()
-        elif act == "tanh":
-            self.act = nn.Tanh()
-        else:
-            raise NotImplementedError
         if batch_norm:
             self.bn = nn.BatchNorm1d(output_channel)
         else:
@@ -123,7 +124,7 @@ class MLPDecoder(BaseNetwork):
 
 
 class ConvDecoder(BaseNetwork):
-    def __init__(self, input_channel, output_channel, ngf, batch_norm=True):
+    def __init__(self, input_channel, output_channel, ngf, batch_norm=True, output_act="tanh"):
         super().__init__(input_channel, output_channel)
         self.network = nn.Sequential(
             nn.ConvTranspose2d(input_channel, ngf * 4, 4, 1, 0, bias=False),
@@ -136,7 +137,7 @@ class ConvDecoder(BaseNetwork):
             get_norm_layer(batch_norm)(ngf),
             nn.ReLU(True),
             nn.ConvTranspose2d(ngf, output_channel, 4, 2, 1, bias=False),
-            nn.Tanh(),
+            get_act_function(output_act)
         )
 
     def forward(self, x):
