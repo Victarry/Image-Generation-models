@@ -2,6 +2,10 @@ from pytorch_lightning import LightningModule
 import torchvision
 from src.utils.utils import get_logger
 import torch
+import matplotlib.pyplot as plt
+import io
+import PIL
+from torchvision.transforms import ToTensor
 
 
 class BaseModel(LightningModule):
@@ -30,3 +34,17 @@ class BaseModel(LightningModule):
             imgs = (imgs + 1) / 2
         imgs = (imgs * 255).to(torch.uint8)
         return imgs
+
+    def plot_scatter(self, name, x, y, c=None, s=None, xlim=None, ylim=None):
+        plt.figure()
+        plt.scatter(x=x, y=y, s=s, c=c, cmap="tab10", alpha=1)
+        if xlim:
+            plt.xlim(xlim)
+        if ylim:
+            plt.ylim(ylim)
+        plt.title("Latent distribution")
+        buf = io.BytesIO()
+        plt.savefig(buf, format='jpeg')
+        buf.seek(0)
+        visual_image = ToTensor()(PIL.Image.open(buf))
+        self.logger.experiment.add_image(name, visual_image, self.global_step)
