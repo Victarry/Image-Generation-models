@@ -3,10 +3,10 @@ channels: ${datamodule.channels}
 width: ${datamodule.width}
 height: ${datamodule.height}
 latent_dim: 128
-lr: 0.0001
+lr: 1e-4
 b1: 0.9
 b2: 0.999
-reg_weight: 1
+beta: 1
 optim: adam
 input_normalize: True
 encoder: ${networks.encoder}
