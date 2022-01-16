@@ -12,6 +12,7 @@ class MNISTDataModule(pl.LightningDataModule):
         data_dir: str = "./data",
         batch_size: int = 64,
         num_workers: int = 8,
+        normalize: bool = True,
         **kargs
     ):
         super().__init__()
@@ -19,7 +20,11 @@ class MNISTDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
 
-        self.transform = transforms.Compose([transforms.ToTensor()])
+        data_transform = [transforms.ToTensor()]
+        if normalize:
+            data_transform.append(transforms.Normalize([0.5], [0.5]))
+
+        self.transform = transforms.Compose(data_transform)
 
         # self.dims is returned when you call dm.size()
         # Setting default dims here because we know them.
@@ -34,9 +39,9 @@ class MNISTDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         # Assign train/val datasets for use in dataloaders
-        mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
-        self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
-        self.mnist_test = MNIST(self.data_dir, train=False, transform=self.transform)
+        self.mnist_train = MNIST(self.data_dir, train=True, transform=self.transform)
+        self.mnist_val = MNIST(self.data_dir, train=False, transform=self.transform)
+        # self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
 
     def train_dataloader(self):
         return DataLoader(
@@ -47,12 +52,12 @@ class MNISTDataModule(pl.LightningDataModule):
             multiprocessing_context="fork",
         )
 
-    # def val_dataloader(self):
-    #     return DataLoader(
-    #         self.mnist_val, batch_size=self.batch_size, num_workers=self.num_workers
-    #     )
-
-    def test_dataloader(self):
+    def val_dataloader(self):
         return DataLoader(
-            self.mnist_test, batch_size=self.batch_size, num_workers=self.num_workers
+            self.mnist_val, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False
         )
+
+    # def test_dataloader(self):
+    #     return DataLoader(
+    #         self.mnist_test, batch_size=self.batch_size, num_workers=self.num_workers
+    #     )

@@ -5,16 +5,14 @@ https://arxiv.org/abs/1511.05644
 import itertools
 from pathlib import Path
 import numpy as np
-import matplotlib.pyplot as plt
 import hydra
 import torch
 import torch.nn.functional as F
 import torchvision
+
+from src.utils.toy import ToyGMM
 from .base import BaseModel
 import torchmetrics
-import io
-import PIL
-from torchvision.transforms import ToTensor
 
 
 class AAE(BaseModel):
@@ -36,12 +34,11 @@ class AAE(BaseModel):
         optim="adam",
         eval_fid=False,
         recon_weight=10,
+        prior="normal",
         **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
-
-        self.prior = "standard_normal"
         # networks
         self.decoder = hydra.utils.instantiate(
             decoder, input_channel=latent_dim, output_channel=channels
@@ -61,16 +58,16 @@ class AAE(BaseModel):
         return output
     
     def sample_prior(self, N):
-        if self.prior == "standard_normal":
+        if self.hparams.prior == "normal":
             mean = np.zeros(self.hparams.latent_dim)
             var = np.diag(np.ones(self.hparams.latent_dim))
             samples = np.random.multivariate_normal(mean, var, size=(N))
+        elif self.hparams.prior == "toy_gmm":
+            samples, _ = ToyGMM(10).sample(N) 
         return torch.tensor(samples, dtype=torch.float32).to(self.device)
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch  # (N, C, H, W)
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
 
         # sample noise
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
@@ -82,7 +79,7 @@ class AAE(BaseModel):
             # generate images
             generated_imgs = self.decoder(q_z)
             recon_loss = F.mse_loss(imgs, generated_imgs)
-            self.log("train_loss/recon_loss", recon_loss, prog_bar=True)
+            self.log("train_loss/recon_loss", recon_loss)
             # log sampled images
             self.log_images(generated_imgs, "generated_images")
 
@@ -93,7 +90,18 @@ class AAE(BaseModel):
 
             # adversarial loss is binary cross-entropy
             adv_loss = self.adversarial_loss(self.discriminator(q_z), valid)
-            self.log("train_loss/adv_encoder_loss", adv_loss, prog_bar=True)
+            self.log("train_loss/adv_encoder_loss", adv_loss)
+
+            # log grid image
+            if self.hparams.latent_dim == 2 and self.global_step % 200 == 0:
+                x = torch.tensor(np.linspace(-3, 3, 20)).type_as(imgs)
+                y = torch.tensor(np.linspace(3, -3, 20)).type_as(imgs)
+                xx, yy = torch.meshgrid([y, x]) # the default indexing method is ij instread of xy
+                latent = torch.stack([xx.reshape(-1), yy.reshape(-1)], dim=1) # (20*20, 2)
+                grid_imgs = self.decoder(latent)
+                self.log_images(grid_imgs, "sample/grid_imgs", nimgs=400, nrow=20)
+                self.log_images(imgs, "train/input_images")
+                self.log_images(generated_imgs, "train/recon_images")
             return adv_loss+recon_loss*self.hparams.recon_weight
 
         # train discriminator
@@ -160,32 +168,14 @@ class AAE(BaseModel):
             # show posterior
             latents_array = torch.cat(self.latents).cpu().numpy()
             labels_array = torch.cat(self.labels).cpu().numpy()
+            sort_idx = np.argsort(labels_array)
+            self.plot_scatter("Latent Distribution", x=latents_array[:, 0][sort_idx], y=latents_array[:,1][sort_idx], 
+                                c=labels_array[sort_idx], xlim=(-3, 3), ylim=(-3, 3))
+
+            samples = self.sample_prior(10000)
+            self.plot_scatter("Prior Distribution", x=samples[:, 0], y=samples[:, 1], xlim=(-3, 3), ylim=(-3, 3))
             self.latents = []
             self.labels = []
-            plt.figure()
-            plt.scatter(x=latents_array[:, 0], y=latents_array[:,1], c=labels_array, cmap="tab10")
-            plt.xlim(-5, 5)
-            plt.ylim(-5, 5)
-            plt.title("Latent distribution")
-            buf = io.BytesIO()
-            plt.savefig(buf, format='jpeg')
-            buf.seek(0)
-            visual_image = ToTensor()(PIL.Image.open(buf))
-            self.logger.experiment.add_image("latent distributions", visual_image, self.global_step)
-
-            # show prior
-            latents_array = self.sample_prior(100000).cpu().numpy()
-            plt.figure()
-            plt.scatter(x=latents_array[:, 0], y=latents_array[:,1])
-            plt.xlim(-5, 5)
-            plt.ylim(-5, 5)
-            plt.title("Prior Latent distribution")
-            buf = io.BytesIO()
-            plt.savefig(buf, format='jpeg')
-            buf.seek(0)
-            visual_image = ToTensor()(PIL.Image.open(buf))
-            self.logger.experiment.add_image("Prior latent distributions", visual_image, self.global_step)
-
 
     def adversarial_loss(self, y_hat, y):
         if self.hparams.loss_mode == "vanilla":

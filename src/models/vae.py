@@ -8,10 +8,12 @@ import torch
 import torch.nn.functional as F
 import torchvision
 from omegaconf import OmegaConf
-from torch import logit, nn
+from torch import nn
 
 from src.models.base import BaseModel
 from torch import distributions
+
+from src.utils.toy import ToyGMM
 
 class GaussianDistribution(nn.Module):
     def __init__(self):
@@ -26,21 +28,22 @@ class GaussianDistribution(nn.Module):
         return mu
 
 class BernoulliDistribution(nn.Module):
-    def __init__(self):
+    def __init__(self, input_normalized=True):
         super().__init__()
+        self.input_normalized = input_normalized
     
-    def forward(self, logits, target, input_normalized=True):
-        if input_normalized:
+    def forward(self, logits, target):
+        if self.input_normalized:
             target = (target+1)/2
         prob = -F.binary_cross_entropy_with_logits(logits, target, reduction='none').sum([1, 2, 3])
         return prob
 
-    def sample(self, logits, input_normalized=True):
+    def sample(self, logits):
         # NOTE: Actually, sampling from bernoulli will cause sharp artifacts.
         # dist = distributions.Bernoulli(logits=logits)
         # imgs = dist.sample()
         imgs = torch.sigmoid(logits)
-        if input_normalized:
+        if self.input_normalized:
             imgs = imgs*2-1
         return imgs
 
@@ -61,6 +64,7 @@ class VAE(BaseModel):
         b2: float = 0.999,
         input_normalize=True,
         decoder_dist="gaussian",
+        prior_dist="normal",
         **kwargs,
     ):
         super().__init__()
@@ -77,10 +81,17 @@ class VAE(BaseModel):
             self.decoder = hydra.utils.instantiate(
                 decoder, input_channel=latent_dim, output_channel=channels, output_act="identity"
             )
-            self.decoder_dist = BernoulliDistribution()
+            self.decoder_dist = BernoulliDistribution(input_normalized=input_normalize)
+        
         self.encoder = hydra.utils.instantiate(
             encoder, input_channel=channels, output_channel=2 * latent_dim
         )
+
+    def get_prior_dist(self):
+        if self.hparams.prior_dist == "normal":
+            return distributions.MultivariateNormal(torch.zeros(self.hparams.latent_dim).to(self.device), torch.diag(torch.ones(self.hparams.latent_dim).to(self.device)))
+        elif self.hparams.prior_dist == "toy_gmm":
+            return ToyGMM(10, device=self.device)
 
     def forward(self, z=None):
         """Generate images given latent code."""
@@ -98,10 +109,8 @@ class VAE(BaseModel):
         return output
 
     def training_step(self, batch, batch_idx):
-        imgs, _ = batch # (N, C, H, W)
+        imgs, labels = batch # (N, C, H, W)
         N = imgs.shape[0]
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
 
         # encoding
         z = self.encoder(imgs).reshape(N, -1)  # (N, latent_dim)
@@ -109,14 +118,14 @@ class VAE(BaseModel):
         mu, log_sigma = z[:, : self.hparams.latent_dim], z[:, self.hparams.latent_dim :]
 
         post_dist = distributions.Normal(mu, torch.exp(log_sigma))
-        prior_dist = distributions.Normal(torch.zeros_like(mu), torch.ones_like(log_sigma))
+        prior_dist = self.get_prior_dist()
         samples_z = post_dist.rsample()
         # Method1: Monte-Carlo Method for KL
-        kl_divergence = (post_dist.log_prob(samples_z)-prior_dist.log_prob(samples_z)).sum(dim=-1).mean(dim=0)
+        kl_divergence = (post_dist.log_prob(samples_z).sum(dim=-1)-prior_dist.log_prob(samples_z)).mean(dim=0)
         # Method2: Closed-form Entropy and MC for crossentropy
         # kl_divergence = (-post_dist.entropy()-prior_dist.log_prob(samples_z)).sum(-1).mean(dim=0)
         # Method3: Closed-form KL
-        # kl_divergence = -0.5 * torch.sum(1 + 2 * log_sigma - mu ** 2 - torch.exp(2 * log_sigma), dim=1).mean(dim=0)
+        # kl_divergence = -0.5 * torch.sum(1 + 2 * log_sigma - mu ** 2 - torch.exp(2 * log_sigma), dim=-1).mean(dim=0)
 
         # decoding
         logits = self.decoder(samples_z)
@@ -129,12 +138,13 @@ class VAE(BaseModel):
         self.log("train_log/sigma", torch.exp(log_sigma).mean())
 
         # log sampled images
-        if self.global_step % 50 == 0:
+        if self.global_step % 200 == 0:
             recon_images = self.decoder_dist.sample(logits)
             sample_images = self()
-            self.log_images(imgs, "recon/source_image")
-            self.log_images(recon_images, "recon/output_image")
-            self.log_images(sample_images, "sample/output_image")
+            self.log_images(imgs, "train recon/source_image")
+            self.log_images(recon_images, "train recon/output_image")
+            self.log_images(sample_images, "train sample/output_image")
+            # self.log_hist(torch.linalg.norm(torch.exp(log_sigma), dim=1), "sigma hist")
 
             # sample images given the first image of mini-batch 
             # NOTE: when batchnorm is applied, each batch will produce different images even the variantion is very small.
@@ -144,11 +154,18 @@ class VAE(BaseModel):
 
             if self.hparams.latent_dim == 2:
                 x = torch.tensor(np.linspace(-3, 3, 20)).type_as(imgs)
-                y = torch.tensor(np.linspace(-3, 3, 20)).type_as(imgs)
-                xx, yy = torch.meshgrid([x, y])
+                y = torch.tensor(np.linspace(3, -3, 20)).type_as(imgs)
+                xx, yy = torch.meshgrid([y, x])
                 latent = torch.stack([xx.reshape(-1), yy.reshape(-1)], dim=1) # (20*20, 2)
                 grid_imgs = self.decoder(latent)
                 self.log_images(grid_imgs, "sample/grid_imgs", nimgs=400, nrow=20)
+                self.plot_scatter("train/latent distributions", x=samples_z[:, 0], y=samples_z[:,1], c=labels, s=2, xlim=(-3, 3), ylim=(-3, 3))
+                self.plot_scatter("train/latent mu distributions", x=mu[:, 0], y=mu[:,1], c=labels, s=2, xlim=(-3, 3), ylim=(-3, 3))
+
+                if self.hparams.prior_dist == "toy_gmm":
+                    samples, labels = self.get_prior_dist().sample(2000)
+                    self.plot_scatter("prior distributions", x=samples[:, 0], y=samples[:,1], c=labels, s=2, xlim=(-3, 3), ylim=(-3, 3))
+
 
         return -elbo 
     
@@ -189,14 +206,23 @@ class VAE(BaseModel):
 
     def validation_step(self, batch, batch_idx):
         imgs, label = batch
+
+        z = self.encoder(imgs)
+        mu, log_sigma = z[:, : self.hparams.latent_dim], z[:, self.hparams.latent_dim :]
+        post_dist = distributions.Normal(mu, torch.exp(log_sigma))
+        sample_z = post_dist.rsample()
+        recon_image = self(sample_z)
+        sample_images = self()
         if self.hparams.latent_dim == 2:
-            z = self.encoder(imgs)
-            mu, log_sigma = z[:, : self.hparams.latent_dim], z[:, self.hparams.latent_dim :]
-            post_dist = distributions.Normal(mu, torch.exp(log_sigma))
-            self.latents.append(post_dist.rsample())
+            self.latents.append(sample_z)
             self.labels.append(label)
             self.mu.append(mu)
             self.sigma.append(torch.linalg.norm(torch.exp(log_sigma), dim=1))
+        
+        self.log_images(imgs, "val recon/source_image")
+        self.log_images(recon_image, "val recon/output_image")
+        self.log_images(sample_images, "val sample/output_image")
+
 
     def on_validation_epoch_end(self):
         if self.hparams.latent_dim == 2:
@@ -208,7 +234,8 @@ class VAE(BaseModel):
             sort_idx = np.argsort(labels_array)
             self.latents = []
             self.labels = []
-            self.plot_scatter("latent distributions", x=latents_array[:, 0][sort_idx], y=latents_array[:,1][sort_idx],s=sigma_array[sort_idx], 
+            self.plot_scatter("val/latent distributions", x=latents_array[:, 0][sort_idx], y=latents_array[:,1][sort_idx], 
                 c=labels_array[sort_idx], xlim=(-3, 3), ylim=(-3, 3))
-            self.plot_scatter("latent mu distributions", x=mu_array[:, 0][sort_idx], y=mu_array[:,1][sort_idx], s=1, 
-                c=labels_array[sort_idx], xlim=(-3, 3), ylim=(-3, 3))
+            # self.plot_scatter("val/latent mu distributions", x=mu_array[:, 0][sort_idx], y=mu_array[:,1][sort_idx],
+            #     c=labels_array[sort_idx], xlim=(-3, 3), ylim=(-3, 3))
+            # self.log_hist(torch.cat(self.sigma), "val/sigma hist")

@@ -8,6 +8,6 @@ b1: 0.9
 b2: 0.999
 beta: 1
 optim: adam
-input_normalize: True
+input_normalize: ${datamodule.normalize}
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}
