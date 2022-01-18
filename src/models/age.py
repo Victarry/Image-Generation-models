@@ -102,6 +102,8 @@ class AGE(BaseModel):
             if self.global_step % 200 == 0:
                 # log sampled images
                 self.log_images(fake_imgs, "generated_images")
+                self.log_images(imgs, "source_images")
+                self.log_images(recon_imgs, "recon_imgs")
                 if self.hparams.latent_dim == 2:
                     self.plot_scatter("real_distribution/sample", x=real_z[:, 0], y=real_z[:, 1], c=labels)
                     self.plot_scatter("real_distribution/sample_norm", x=norm_real_z[:, 0], y=norm_real_z[:, 1], c=labels, xlim=(-1, 1), ylim=(-1, 1))
