@@ -198,4 +198,12 @@ python run.py -m experiment='glob(vqvae*)'
 _Note: Sampling of VQ-VAE is different from vanilla vae and is not implemened, this results only shows the reconstruction results of test images._
 
 
+=== AAE
+- Paper: Adversarial Autoencoders https://arxiv.org/abs/1511.05644[Paper]
+- https://github.com/Victarry/Generative-models/blob/main/src/models/aae.py[Code] 
+
+=== AGE
+- Paper: It Takes (Only) Two: Adversarial Generator-Encoder Networks https://arxiv.org/abs/1704.02304[Paper]
+- https://github.com/Victarry/Generative-models/blob/main/src/models/age.py[Code] 
+
 === DDPM
