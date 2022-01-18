@@ -61,6 +61,7 @@ class BaseModel(LightningModule):
         plt.title("Latent distribution")
         buf = io.BytesIO()
         plt.savefig(buf, format='jpeg')
+        plt.close()
         buf.seek(0)
         visual_image = ToTensor()(PIL.Image.open(buf))
         self.logger.experiment.add_image(name, visual_image, self.global_step)

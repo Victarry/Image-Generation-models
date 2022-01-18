@@ -118,6 +118,7 @@ class VAE(BaseModel):
         mu, log_sigma = z[:, : self.hparams.latent_dim], z[:, self.hparams.latent_dim :]
 
         post_dist = distributions.Normal(mu, torch.exp(log_sigma))
+
         prior_dist = self.get_prior_dist()
         samples_z = post_dist.rsample()
         # Method1: Monte-Carlo Method for KL
@@ -190,12 +191,14 @@ class VAE(BaseModel):
                 lr=lr,
                 betas=(b1, b2),
             )
+            scheduler = torch.optim.lr_scheduler.StepLR(opt, 1, gamma=0.99)
+            return [opt], [scheduler]
         elif self.hparams.optim == 'sgd':
             opt = torch.optim.SGD(
                 itertools.chain(self.encoder.parameters(), self.decoder.parameters()),
                 lr=lr
             )
-        return opt
+            return opt
 
     def on_validation_epoch_start(self) -> None:
         if self.hparams.latent_dim == 2:

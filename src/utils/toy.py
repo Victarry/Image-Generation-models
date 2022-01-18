@@ -29,6 +29,8 @@ class GMM(nn.Module):
         if samples == None and label == None:
             samples, label = self.sample(N)
         plt.figure()
+        samples = samples.detach().cpu().numpy()
+        label = label.detach().cpu().numpy()
         plt.scatter(samples[:, 0], samples[:, 1], c=label, cmap="tab10")
         plt.show()
 
@@ -63,8 +65,9 @@ class ToyGMM(GMM):
             v1 = mean(theta)
             v2 = mean(theta+np.pi/2) # get vector perpend to v1
             Q = torch.stack([v1, v2], axis=1).to(device)
-            D = torch.diag(torch.tensor([0.5, 0.08], dtype=torch.float32)**2).to(device)
+            D = torch.diag(torch.tensor([0.35, 0.08], dtype=torch.float32)**2).to(device)
             return Q@D@Q.T
 
         self.mu_s = Parameter(torch.stack([mean(x)  for x in angles], dim=0)).to(device)
         self.sigma_s = Parameter(torch.stack([get_covariance(x)  for x in angles], dim=0)).to(device)
+        self.update()

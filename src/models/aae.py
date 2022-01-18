@@ -69,10 +69,6 @@ class AAE(BaseModel):
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch  # (N, C, H, W)
 
-        # sample noise
-        z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
-        z = z.type_as(imgs)
-
         # train encoder and decoder
         if optimizer_idx == 0:
             q_z = self.encoder(imgs) # (N, hidden_dim)

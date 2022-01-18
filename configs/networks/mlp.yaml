@@ -21,4 +21,5 @@ encoder:
     - 512
     - 512
   dropout: 0
+  output_act: identity
   batch_norm: True
