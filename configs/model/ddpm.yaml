@@ -9,5 +9,5 @@ b2: 0.999
 timesteps: 1000
 loss_type: l1
 optim: adam
-input_normalize: True
+input_normalize: ${datamodule.normalize}
 dim_mults: [1, 2, 4, 8]

@@ -7,7 +7,7 @@ lr: 0.0001
 b1: 0.9
 b2: 0.999
 optim: adam
-input_normalize: True
+input_normalize: ${datamodule.normalize}
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}
 netD: ${networks.encoder}

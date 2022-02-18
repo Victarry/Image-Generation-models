@@ -9,6 +9,6 @@ b2: 0.999
 beta: 0.25
 K: 512
 optim: adam
-input_normalize: True
+input_normalize: ${datamodule.normalize}
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}
