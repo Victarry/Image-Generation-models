@@ -4,11 +4,12 @@ import hydra
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from torch import nn
+from src.models.base import BaseModel
 from src.utils import utils
 import itertools
 
 
-class InfoGAN(pl.LightningModule):
+class InfoGAN(BaseModel):
     def __init__(
         self,
         channels,
@@ -16,10 +17,12 @@ class InfoGAN(pl.LightningModule):
         height,
         netG,
         netD,
-        lambda_I=1,
-        latent_dim=100,
-        encode_dim=1024,
-        content_dim=10,
+        lambda_I=1, # loss weight for mutual information
+        discrete_dim=1, # discrete latent variable dimension
+        discrete_value=10, # the value range of discrete latent variable
+        continuous_dim=2,
+        noise_dim=62,
+        encode_dim=1024, # intermediate dim for common layer
         loss_mode="vanilla",
         lrG: float = 0.001,
         lrD: float = 0.0002,
@@ -33,33 +36,55 @@ class InfoGAN(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
+        self.latent_dim = discrete_dim*discrete_value + continuous_dim + noise_dim 
         # networks
-        self.netG = hydra.utils.instantiate(netG)
-        self.common_layer = hydra.utils.instantiate(netD)
+        self.netG = hydra.utils.instantiate(netG, input_channel=self.latent_dim, output_channel=channels)
+        self.common_layer = hydra.utils.instantiate(netD, input_channel=channels, output_channel=encode_dim)
         self.netD = nn.Sequential(nn.LeakyReLU(), nn.Linear(encode_dim, 1))
         self.netQ = nn.Sequential(
             nn.LeakyReLU(),
             nn.Linear(encode_dim, 128),
             nn.LeakyReLU(),
-            nn.Linear(128, content_dim),
-            nn.Softmax(),
+            nn.Linear(128, discrete_dim*discrete_value + continuous_dim),
         )
+    
+    def encode(self, x, return_posterior=False):
+        x = self.common_layer(x)
+        adv_logit = self.netD(x)
+        if return_posterior:
+            output = self.netQ(x)
+            dis_c_logits = output[:, :-self.hparams.continuous_dim].reshape(-1, 
+                self.hparams.discrete_value, self.hparams.discrete_dim)
+            cont_c = output[:, -self.hparams.continuous_dim:]
+            return adv_logit, dis_c_logits, cont_c
+        else:
+            return adv_logit
 
-    def forward(self, N, z=None, c=None):
+
+    def decode(self, N, dis_c_index=None, cont_c=None, z=None, return_latents=False):
+        """
+        N: batch_size
+        disc_c_index: tensor of shape (N, discrete_dim)
+        """
+        if dis_c_index == None:
+            dis_c_index = torch.randint(0, self.hparams.discrete_value, (N, self.hparams.discrete_dim)).to(self.device) # (N, discrete_dim)
+        dis_c = torch.zeros(N, self.hparams.discrete_value, self.hparams.discrete_dim).to(self.device) # (N, discrete_value, disrete_dim)
+        dis_c.scatter_(1, dis_c_index.unsqueeze(1), torch.ones_like(dis_c))
+        
+        if cont_c == None:
+            cont_c = torch.zeros(N, self.hparams.continuous_dim, device=self.device).uniform_(-1, 1)
+
         if z == None:
-            z = torch.randn(N, self.hparams.latent_dim - self.hparams.content_dim).to(
-                self.device
-            )
-        if c == None:
-            c = torch.zeros(N, self.hparams.content_dim).to(self.device)
-            c_index = torch.randint(0, self.hparams.content_dim, (N,)).to(self.device)
-            c[torch.arange(N), c_index] = 1
+            z = torch.randn(N, self.hparams.noise_dim).to(self.device)
 
-        output = self.netG(torch.cat([z, c], dim=1))
+        output = self.netG(torch.cat([dis_c.reshape(N, -1), cont_c, z], dim=1))
         output = output.reshape(
             z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
         )
-        return output
+        if return_latents:
+            return output, (dis_c_index, cont_c, z)
+        else:
+            return output
 
     def adversarial_loss(self, y_hat, y):
         if self.hparams.loss_mode == "vanilla":
@@ -67,67 +92,62 @@ class InfoGAN(pl.LightningModule):
         elif self.hparams.loss_mode == "lsgan":
             return F.mse_loss(y_hat, y)
 
-    def log_images(self, imgs, name):
-        imgs = imgs.reshape(
-            -1, self.hparams.channels, self.hparams.height, self.hparams.width
-        )
-        if self.hparams.input_normalize:
-            grid = torchvision.utils.make_grid(
-                imgs[:64], normalize=True, value_range=(-1, 1)
-            )
-        else:
-            grid = torchvision.utils.make_grid(imgs[:64], normalize=False)
-        self.logger.experiment.add_image(name, grid, self.global_step)
-
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch
         N = imgs.shape[0]
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
-
-        # sample noise
-        z = torch.randn(N, self.hparams.latent_dim - self.hparams.content_dim).to(
-            self.device
-        )
-        c = torch.zeros(N, self.hparams.content_dim).to(self.device)
-        c_index = torch.randint(0, self.hparams.content_dim, (N,)).to(self.device)
-        c[torch.arange(N), c_index] = 1
-        input_latent = torch.cat([z, c], dim=1)
 
         # train generator
         if optimizer_idx == 0:
 
             # generate images
-            generated_imgs = self.netG(input_latent)
-
-            # log sampled images
-            if self.global_step % 50 == 0:
-                self.log_images(generated_imgs, "generated_images")
-
-                index = torch.arange(10).reshape(10, 1).repeat(1, 8).reshape(80)  # (80)
-                sample_c = torch.zeros(80, 10).to(self.device)
-                sample_c[torch.arange(80), index] = 1
-
-                z = torch.randn(
-                    80, self.hparams.latent_dim - self.hparams.content_dim
-                ).to(self.device)
-                sample_image = self.netG(torch.cat([z, sample_c], dim=1))
-                self.log_images(sample_image, "static_images")
+            generated_imgs, (dis_c, cont_c, z) = self.decode(N, return_latents=True)
 
             # ground truth result (ie: all fake)
             # put on GPU because we created this tensor inside training_loop
             valid = torch.ones(imgs.size(0), 1)
             valid = valid.type_as(imgs)
 
-            common_feature = self.common_layer(generated_imgs)
+            adv_logit, dis_c_logits, cont_c_hat = self.encode(generated_imgs, return_posterior=True)
             # adversarial loss is binary cross-entropy
-            g_loss = self.adversarial_loss(self.netD(common_feature), valid)
+            g_loss = self.adversarial_loss(adv_logit, valid)
             self.log("train_loss/g_loss", g_loss)
 
             # mutual information loss
-            c_hat = self.netQ(common_feature)
-            I_loss = F.cross_entropy(c_hat, c_index)
-            self.log("train_loss/I_loss", I_loss)
+            I_discete_loss = F.cross_entropy(dis_c_logits, dis_c) 
+            I_continuous_loss = F.mse_loss(cont_c_hat, cont_c)
+            I_loss = I_discete_loss + I_continuous_loss
+            self.log("train_loss/I_discrete_loss", I_discete_loss)
+            self.log("train_loss/I_continuous", I_continuous_loss)
+
+            # log sampled images
+            if self.global_step % 50 == 0:
+                self.log_images(generated_imgs, "generated_images", nrow=8)
+
+                N = 4
+                a, b, c = self.hparams.discrete_value, self.hparams.continuous_dim, self.hparams.noise_dim
+                # each row has `a` values and totally N rows
+                # Traverse over discrete latent value while other values are fixed for each N
+                disc_c = torch.arange(a).reshape(1, a).repeat(N, 1).reshape(N*a, 1).to(self.device)
+                cont_c = torch.randn(N, 1, b).repeat(1, a, 1).reshape(N*a, b).to(self.device) 
+                z = torch.randn(N, 1, c).repeat(1, a, 1).reshape(N*a, c).to(self.device) # (40, noise_dim)
+                imgs = self.decode(40, disc_c, cont_c, z)
+                self.log_images(imgs, "traverse over discrete values", nrow=10)
+
+                # Traverse over continuous latent values while other values are fixed for each N
+                disc_c = torch.randperm(a)[:N].reshape(N, 1).repeat(1, a).reshape(N*a, 1).to(self.device)
+                cont_c_variation = torch.linspace(-1, 1, a).reshape(1, a).repeat(N, 1).reshape(N*a).to(self.device)
+                cont_c = torch.randn(N, 1, b).repeat(1, a, 1).reshape(N*a, b).to(self.device) 
+                z = torch.randn(N, 1, c).repeat(1, a, 1).reshape(N*a, c).to(self.device) # (40, noise_dim)
+
+                cont_c_mix = cont_c.clone()
+                cont_c_mix[:, 0] = cont_c_variation
+                imgs = self.decode(40, disc_c, cont_c_mix, z)
+                self.log_images(imgs, "traverse over first continuous values", nrow=10)
+
+                cont_c_mix = cont_c.clone()
+                cont_c_mix[:, 1] = cont_c_variation
+                imgs = self.decode(40, disc_c, cont_c_mix, z)
+                self.log_images(imgs, "traverse over second continuous values", nrow=10)
 
             return g_loss + self.hparams.lambda_I * I_loss
 
@@ -142,7 +162,7 @@ class InfoGAN(pl.LightningModule):
             # fake loss
             fake = torch.zeros(imgs.size(0), 1)
             fake = fake.type_as(imgs)
-            fake_logit = self.netD(self.common_layer(self.netG(input_latent).detach()))
+            fake_logit = self.encode(self.decode(N).detach())
             fake_loss = self.adversarial_loss(fake_logit, fake)
 
             # discriminator loss is the average of these
