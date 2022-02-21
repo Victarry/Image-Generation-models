@@ -9,15 +9,19 @@ from torchvision.transforms import ToTensor
 import numpy as np
 
 class BaseModel(LightningModule):
-    def __init__(self) -> None:
+    def __init__(self, datamodule) -> None:
         super().__init__()
         self.console = get_logger()
+        self.width = datamodule.width
+        self.height = datamodule.height
+        self.channels = datamodule.channels
+        self.input_normalize = datamodule.transforms.normalize
 
     def get_grid_images(self, imgs, nimgs=64, nrow=8):
         imgs = imgs.reshape(
-            -1, self.hparams.channels, self.hparams.height, self.hparams.width
+            -1, self.channels, self.height, self.width
         )
-        if self.hparams.input_normalize:
+        if self.input_normalize:
             grid = torchvision.utils.make_grid(
                 imgs[:nimgs], nrow=nrow, normalize=True, value_range=(-1, 1)
             )
@@ -35,7 +39,7 @@ class BaseModel(LightningModule):
         self.logger.experiment.add_image(name, grid, self.global_step)
 
     def image_float2int(self, imgs):
-        if self.hparams.input_normalize:
+        if self.input_normalize:
             imgs = (imgs + 1) / 2
         imgs = (imgs * 255).to(torch.uint8)
         return imgs

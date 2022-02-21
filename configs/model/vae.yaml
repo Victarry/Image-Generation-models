@@ -1,13 +1,9 @@
 _target_: src.models.vae.VAE
-channels: ${datamodule.channels}
-width: ${datamodule.width}
-height: ${datamodule.height}
 latent_dim: 128
 lr: 1e-4
 b1: 0.9
 b2: 0.999
 beta: 1
 optim: adam
-input_normalize: ${datamodule.normalize}
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}

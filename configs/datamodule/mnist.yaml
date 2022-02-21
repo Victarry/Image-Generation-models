@@ -1,8 +1,11 @@
 _target_: src.datamodules.mnist.MNISTDataModule
+data_dir: ${data_dir}
 channels: 1
 width: 28
 height: 28
-data_dir: ${data_dir}
 batch_size: 128
 num_workers: 8
-normalize: True # normlized to [-1, 1]
+transforms:
+  convert: True
+  normalize: True
+  grayscale: True

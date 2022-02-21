@@ -6,6 +6,10 @@ defaults:
 
 model:
   loss_mode: vanilla
+  lrG: 2e-3
+  lrD: 2e-3
+datamodule:
+  batch_size: 1024
 exp_name: vanilla_gan/celeba
 trainer:
   max_epochs: 100

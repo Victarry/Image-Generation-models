@@ -12,9 +12,7 @@ from .base import BaseModel
 class WGAN(BaseModel):
     def __init__(
         self,
-        channels,
-        width,
-        height,
+        datamodule,
         netG,
         netD,
         latent_dim=100,
@@ -28,21 +26,21 @@ class WGAN(BaseModel):
         gp_weight=10,
         **kwargs,
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
 
         # networks
         self.generator = hydra.utils.instantiate(
-            netG, input_channel=latent_dim, output_channel=channels
+            netG, input_channel=latent_dim, output_channel=self.channels
         )
         self.discriminator = hydra.utils.instantiate(
-            netD, input_channel=channels, output_channel=1
+            netD, input_channel=self.channels, output_channel=1
         )
 
     def forward(self, z):
         output = self.generator(z)
         output = output.reshape(
-            z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
+            z.shape[0], self.channels, self.height, self.width
         )
         return output
 

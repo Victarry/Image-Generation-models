@@ -1,8 +1,5 @@
 _target_: src.models.vae_gan.VAEGAN
 loss_mode: vanilla
-channels: ${datamodule.channels}
-width: ${datamodule.width}
-height: ${datamodule.height}
 latent_dim: 100
 encoder_dim: 1
 lrG: 0.0002
@@ -10,7 +7,6 @@ lrD: 0.0002
 b1: 0.5
 b2: 0.999
 optim: adam
-input_normalize: ${datamodule.normalize}
 recon_weight: 0.01
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}

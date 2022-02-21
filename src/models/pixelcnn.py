@@ -74,17 +74,20 @@ class GatedMaskedConv(nn.Module):
 
 class PixelCNN(BaseModel):
     def __init__(
-        self, channels, width, height, hidden_dim, input_normalize=True, lr=1e-3
+        self, 
+        datamodule, 
+        hidden_dim, 
+        lr=1e-3
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
 
         # Initial convolutions skipping the center pixel
         self.conv_vstack = VerticalStackConvolution(
-            channels, hidden_dim, 5, mask_center=True
+            self.channels, hidden_dim, 5, mask_center=True
         )
         self.conv_hstack = HorizontalStackConvolution(
-            channels, hidden_dim, 5, mask_center=True
+            self.channels, hidden_dim, 5, mask_center=True
         )
         # Convolution block of PixelCNN. We use dilation instead of downscaling
         self.conv_layers = nn.ModuleList(
@@ -103,7 +106,7 @@ class PixelCNN(BaseModel):
             ]
         )
         # Output classification convolution (1x1)
-        self.conv_out = nn.Conv2d(hidden_dim, channels * 256, kernel_size=1, padding=0)
+        self.conv_out = nn.Conv2d(hidden_dim, self.channels * 256, kernel_size=1, padding=0)
 
     def forward(self, x):
         """

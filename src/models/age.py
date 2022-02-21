@@ -17,9 +17,7 @@ import torchmetrics
 class AGE(BaseModel):
     def __init__(
         self,
-        channels,
-        width,
-        height,
+        datamodule,
         encoder,
         decoder,
         lrE,
@@ -35,13 +33,13 @@ class AGE(BaseModel):
         **kwargs,
     ):
         super().__init__()
-        self.save_hyperparameters()
+        self.save_hyperparameters(datamodule)
         # networks
         self.decoder = hydra.utils.instantiate(
-            decoder, input_channel=latent_dim, output_channel=channels
+            decoder, input_channel=latent_dim, output_channel=self.channels
         )
         self.encoder = hydra.utils.instantiate(
-            encoder, input_channel=channels, output_channel=latent_dim
+            encoder, input_channel=self.channels, output_channel=latent_dim
         )
 
         self.prior_mu = Parameter(torch.zeros(latent_dim))
@@ -54,7 +52,7 @@ class AGE(BaseModel):
             z = torch.randn(64, self.hparams.latent_dim).to(self.device)
         output = self.decoder(z)
         output = output.reshape(
-            z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
+            z.shape[0], self.channels, self.height, self.width
         )
         return output
     

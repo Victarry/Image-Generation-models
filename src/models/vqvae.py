@@ -54,9 +54,7 @@ class VectorQuantizer(nn.Module):
 class VQVAE(BaseModel):
     def __init__(
         self,
-        channels: int = 3,
-        width: int = 64,
-        height: int = 64,
+        datamodule,
         encoder: OmegaConf = None,
         decoder: OmegaConf = None,
         latent_dim=100,
@@ -65,18 +63,17 @@ class VQVAE(BaseModel):
         b2: float = 0.999,
         num_embeddings: int = 512,
         beta: float = 0.25,
-        input_normalize=True,
         optim="adam",
         **kwargs,
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
 
         self.decoder = hydra.utils.instantiate(
-            decoder, input_channel=latent_dim, output_channel=channels
+            decoder, input_channel=latent_dim, output_channel=self.channels
         )
         self.encoder = hydra.utils.instantiate(
-            encoder, input_channel=channels, output_channel=latent_dim
+            encoder, input_channel=self.channels, output_channel=latent_dim
         )
         self.vector_quntizer = VectorQuantizer(num_embeddings, latent_dim, beta)
 
@@ -95,9 +92,9 @@ class VQVAE(BaseModel):
         output = self.decoder(quant_z)
         output = output.reshape(
             output.shape[0],
-            self.hparams.channels,
-            self.hparams.height,
-            self.hparams.width,
+            self.channels,
+            self.height,
+            self.width,
         )
         return output
 

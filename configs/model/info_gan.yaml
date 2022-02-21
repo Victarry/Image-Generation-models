@@ -1,8 +1,5 @@
 _target_: src.models.info_gan.InfoGAN
 loss_mode: vanilla
-channels: 1
-width: 28
-height: 28
 discrete_dim: 1
 discrete_value: 10
 continuous_dim: 2
@@ -15,6 +12,5 @@ lrQ: 0.0002
 b1: 0.5
 b2: 0.999
 optim: adam
-input_normalize: True
 netG: ${networks.decoder}
 netD: ${networks.encoder}

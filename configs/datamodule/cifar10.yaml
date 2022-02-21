@@ -1,8 +1,13 @@
 _target_: src.datamodules.cifar10.CIFAR10DataModule
+data_dir: ${data_dir}
 channels: 3
 width: 32
 height: 32
-data_dir: ${data_dir}
 batch_size: 128
 num_workers: 8
-normalize: True
+transforms:
+  convert: True
+  normalize: True
+  resize:
+    width: ${datamodule.width}
+    height: ${datamodule.height}

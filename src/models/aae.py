@@ -18,9 +18,7 @@ import torchmetrics
 class AAE(BaseModel):
     def __init__(
         self,
-        channels,
-        width,
-        height,
+        datamodule,
         encoder,
         decoder,
         netD,
@@ -30,21 +28,20 @@ class AAE(BaseModel):
         lrD: float = 0.0002,
         b1: float = 0.5,
         b2: float = 0.999,
-        input_normalize=True,
         optim="adam",
         eval_fid=False,
         recon_weight=10,
         prior="normal",
         **kwargs,
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
         # networks
         self.decoder = hydra.utils.instantiate(
-            decoder, input_channel=latent_dim, output_channel=channels
+            decoder, input_channel=latent_dim, output_channel=self.channels
         )
         self.encoder = hydra.utils.instantiate(
-            encoder, input_channel=channels, output_channel=latent_dim
+            encoder, input_channel=self.channels, output_channel=latent_dim
         )
         self.discriminator = hydra.utils.instantiate(
             netD, input_channel=latent_dim, output_channel=1, width=1, height=1
@@ -53,7 +50,7 @@ class AAE(BaseModel):
     def forward(self, z):
         output = self.decoder(z)
         output = output.reshape(
-            z.shape[0], self.hparams.channels, self.hparams.height, self.hparams.width
+            z.shape[0], self.channels, self.height, self.width
         )
         return output
     

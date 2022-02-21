@@ -10,9 +10,7 @@ import itertools
 class InfoGAN(BaseModel):
     def __init__(
         self,
-        channels,
-        width,
-        height,
+        datamodule,
         netG,
         netD,
         lambda_I=1, # loss weight for mutual information
@@ -27,17 +25,16 @@ class InfoGAN(BaseModel):
         lrQ: float = 0.0002,
         b1: float = 0.5,
         b2: float = 0.999,
-        input_normalize=True,
         optim="adam",
         **kwargs
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
 
         self.latent_dim = discrete_dim*discrete_value + continuous_dim + noise_dim 
         # networks
-        self.netG = hydra.utils.instantiate(netG, input_channel=self.latent_dim, output_channel=channels)
-        self.common_layer = hydra.utils.instantiate(netD, input_channel=channels, output_channel=encode_dim)
+        self.netG = hydra.utils.instantiate(netG, input_channel=self.latent_dim, output_channel=self.channels)
+        self.common_layer = hydra.utils.instantiate(netD, input_channel=self.channels, output_channel=encode_dim)
         self.netD = nn.Sequential(nn.LeakyReLU(), nn.Linear(encode_dim, 1))
         self.netQ = nn.Sequential(
             nn.LeakyReLU(),

@@ -50,9 +50,7 @@ class BernoulliDistribution(nn.Module):
 class VAE(BaseModel):
     def __init__(
         self,
-        channels: int = 3,
-        width: int = 64,
-        height: int = 64,
+        datamodule: OmegaConf = None,
         encoder: OmegaConf = None,
         decoder: OmegaConf = None,
         beta: float = 1.0,
@@ -62,30 +60,29 @@ class VAE(BaseModel):
         lr: float = 1e-4,
         b1: float = 0.5,
         b2: float = 0.999,
-        input_normalize=True,
         plot_latent_traverse=False,
         decoder_dist="gaussian",
         prior_dist="normal",
         **kwargs,
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
 
         if decoder_dist == "gaussian":
             # https://stats.stackexchange.com/questions/373858/is-the-optimization-of-the-gaussian-vae-well-posed
             # Using MLL for guassian is ill-posed, so we set the variance of gaussian to be fixed
             self.decoder = hydra.utils.instantiate(
-                decoder, input_channel=latent_dim, output_channel=channels, output_act="tanh"
+                decoder, input_channel=latent_dim, output_channel=self.channels, output_act="tanh"
             )
             self.decoder_dist = GaussianDistribution()
         elif decoder_dist == "bernoulli":
             self.decoder = hydra.utils.instantiate(
-                decoder, input_channel=latent_dim, output_channel=channels, output_act="identity"
+                decoder, input_channel=latent_dim, output_channel=self.channels, output_act="identity"
             )
-            self.decoder_dist = BernoulliDistribution(input_normalized=input_normalize)
+            self.decoder_dist = BernoulliDistribution(input_normalized=self.input_normalize)
         
         self.encoder = hydra.utils.instantiate(
-            encoder, input_channel=channels, output_channel=2 * latent_dim
+            encoder, input_channel=self.channels, output_channel=2 * latent_dim
         )
 
     def get_prior_dist(self):
@@ -103,9 +100,9 @@ class VAE(BaseModel):
         output = self.decoder_dist.sample(logits)
         output = output.reshape(
             output.shape[0],
-            self.hparams.channels,
-            self.hparams.height,
-            self.hparams.width,
+            self.channels,
+            self.height,
+            self.width,
         )
         return output
 

@@ -18,9 +18,7 @@ from omegaconf import OmegaConf
 class VAEGAN(pl.LightningModule):
     def __init__(
         self,
-        channels: int = 3,
-        width: int = 64,
-        height: int = 64,
+        datamodule,
         encoder: OmegaConf = None,
         decoder: OmegaConf = None,
         reg_weight: float = 1.0,
@@ -29,21 +27,20 @@ class VAEGAN(pl.LightningModule):
         b1: float = 0.5,
         b2: float = 0.999,
         recon_wegiht=1,
-        input_normalize=True,
         optim="adam",
         **kwargs,
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
 
         self.decoder = hydra.utils.instantiate(
-            decoder, input_channel=latent_dim, output_channel=channels
+            decoder, input_channel=latent_dim, output_channel=self.channels
         )
         self.encoder = hydra.utils.instantiate(
-            encoder, input_channel=channels, output_channel=2 * latent_dim
+            encoder, input_channel=self.channels, output_channel=2 * latent_dim
         )
         self.discriminator = hydra.utils.instantiate(
-            encoder, input_channel=channels, output_channel=1, return_features=True
+            encoder, input_channel=self.channels, output_channel=1, return_features=True
         )
         self.automatic_optimization = False  # disable automatic optimization
 
@@ -54,9 +51,9 @@ class VAEGAN(pl.LightningModule):
         output = self.decoder(noise)
         output = output.reshape(
             output.shape[0],
-            self.hparams.channels,
-            self.hparams.height,
-            self.hparams.width,
+            self.channels,
+            self.height,
+            self.width,
         )
         return output
 

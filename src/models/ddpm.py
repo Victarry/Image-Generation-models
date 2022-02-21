@@ -20,6 +20,8 @@ from tqdm import tqdm
 from einops import rearrange
 import pytorch_lightning as pl
 
+from .base import BaseModel
+
 try:
     from apex import amp
 
@@ -551,35 +553,32 @@ class GaussianDiffusion(nn.Module):
         return self.p_losses(x, t, *args, **kwargs)
 
 
-class DDPM(pl.LightningModule):
+class DDPM(BaseModel):
     def __init__(
         self,
-        channels: int = 3,
+        datamodule,
         hidden_dim: int = 64,
-        width: int = 64,
-        height: int = 64,
         timesteps: int = 1000,
         loss_type: str = "l1",
         dim_mults: Tuple[int] = (1, 2, 4, 8),
         lr: float = 0.0002,
         b1: float = 0.5,
         b2: float = 0.999,
-        input_normalize=True,
         optim="adam",
         **kwargs,
     ):
-        super().__init__()
+        super().__init__(datamodule)
         self.save_hyperparameters()
 
         self.denoising_model = Unet(
-            dim=hidden_dim, channels=channels, dim_mults=dim_mults
+            dim=hidden_dim, channels=self.channels, dim_mults=dim_mults
         )
         self.diffusion_model = GaussianDiffusion(
             self.denoising_model,
-            image_size=width,
+            image_size=self.width,
             timesteps=timesteps,
             loss_type=loss_type,
-            channels=channels,
+            channels=self.channels,
         )
 
     def forward(self):
@@ -587,12 +586,7 @@ class DDPM(pl.LightningModule):
 
         # decoding
         output = self.decoder(noise)
-        output = output.reshape(
-            output.shape[0],
-            self.hparams.channels,
-            self.hparams.height,
-            self.hparams.width,
-        )
+        output = output.reshape(output.shape[0], self.channels, self.height, self.width)
         return output
 
     def on_train_epoch_end(self):
@@ -603,31 +597,10 @@ class DDPM(pl.LightningModule):
         grid = self.get_grid_images(imgs)
         torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
 
-    def get_grid_images(self, imgs):
-        imgs = imgs.reshape(
-            -1, self.hparams.channels, self.hparams.height, self.hparams.width
-        )
-        if self.hparams.input_normalize:
-            grid = torchvision.utils.make_grid(
-                imgs[:64], normalize=True, value_range=(-1, 1)
-            )
-        else:
-            grid = torchvision.utils.make_grid(imgs[:64], normalize=False)
-        return grid
-
-    def log_images(self, imgs, name):
-        grid = self.get_grid_images(imgs)
-        self.logger.experiment.add_image(name, grid, self.global_step)
-
     def training_step(self, batch, batch_idx):
         imgs, _ = batch
-        N = imgs.shape[0]
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
-
         # encoding
         loss = self.diffusion_model(imgs)
-
         self.log("train_loss/loss", loss.item())
 
         return loss
