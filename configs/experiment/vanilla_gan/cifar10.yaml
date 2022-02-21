@@ -4,9 +4,8 @@ defaults:
   - override /networks: conv_32
   - override /datamodule: cifar10
 
+exp_name: vanilla_gan/cifar10
 model:
   loss_mode: vanilla
-exp_name: vanilla_gan/cifar10
-
 trainer:
   max_epochs: 100

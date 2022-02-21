@@ -8,6 +8,3 @@ num_workers: 8
 transforms:
   convert: True
   normalize: True
-  resize:
-    width: ${datamodule.width}
-    height: ${datamodule.height}

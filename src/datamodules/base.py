@@ -20,7 +20,7 @@ class BaseDatamodule(pl.LightningDataModule):
         )
 
     def val_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=self.num_workers)
 
 def get_interpolation_method(method):
     if method == 'nearest':
