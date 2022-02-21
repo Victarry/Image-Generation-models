@@ -3,207 +3,105 @@
 ++++
 <div align="center">
 ++++
-= Colletions of Generative Models
+= Colletions of Image Generation Models
 
 image:https://img.shields.io/badge/-Python 3.7--3.9-blue?style=for-the-badge&logo=python&logoColor=white[python, link=https://pytorch.org/get-started/locally/]
 image:https://img.shields.io/badge/-PyTorch 1.8+-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white[pytorch, link=https://pytorch.org/]
 image:https://img.shields.io/badge/-Lightning 1.3+-792ee5?style=for-the-badge&logo=pytorchlightning&logoColor=white[pytorch_lignthing, link=https://www.pytorchlightning.ai/]
 image:https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=for-the-badge&labelColor=gray[hydra, link=https://hydra.cc/]
-image:https://img.shields.io/badge/code%20style-black-black.svg?style=for-the-badge&labelColor=gray[black, link=https://github.com/psf/black]
 
-Structurally configured framework for typical generative methods with different networks and datasets.
-
+An easily scalable and hierachical framework including lots of image generation method with various datasets.
 
 ++++
 </div>
 <br> <br>
 ++++
 
+Highlights 💡:
+[Highlights:]
+* Various types of image generation methods(__Continuous updating__): 
+** GANs: WGAN, InfoGAN, BiGAN
+** VAEs: VQ-VAE, Beta-VAE, FactorVAE
+** Augoregressive Models: PixelCNN
+** Diffusion Models: DDPM
+* Decomposition of model training, datasets and networks:
++
+[source, bash]
+----
+python run.py model=wgan networks=conv64 datamodule=celeba exp_name=wgan/celeba_conv64
+----
+* Hierachical configuration of experiment in yaml file
+** Manual change of configs in `configs/model`, `configs/datamodule` and `configs/networks`
+** Run predefined experiments in `configs/experiment`
++
+[source, bash]
+----
+python run.py experiment=vanilla_gan/cifar10
+----
+** Override hyperparameters from command line
++
+[source, bash]
+----
+python run.py experiment=vanilla_gan/cifar10 model.lrG=1e-3 model.lrD=1e-3 exp_name=vanilla_gan/custom_lr
+----
+* Run multiple experiments at the same time:
+** Grid search of hyperparameters:
++
+[source, bash]
+----
+python run.py experiment=vae/mnist_conv model.lr=1e-3,5e-4,1e-4 "exp_name=vae/lr_${model.lr}"
+----
+** Run multiple experiments from config files:
++
+[source, bash]
+----
+python run.py -m experiment=vae/mnist_conv model.lr=1e-3,5e-4,1e-4 "exp_name=vae/lr_${model.lr}"
+----
+
+
 toc::[]
+
+
+== Setup
+
+== Project Structure
 
 == Generative Adversarial Networks(GANs)
 
 === GAN
+*_Generative adversarial nets._* +
+Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, Yoshua Bengio* +
+NeurIPS 2014. [https://arxiv.org/abs/1406.2661[PDF]] [https://arxiv.org/abs/1701.00160[Tutorial]]
 
-- Paper: _Generative Adversarial Nets_  https://arxiv.org/abs/1406.2661[arxiv]
-- https://github.com/Victarry/Generative-models/wiki/vanilla_gan[Wiki]
-- https://github.com/Victarry/Generative-models/blob/main/src/models/gan.py[Code]
-- Commands to run experiment:
-[source, bash]
-----
-python run.py -m experiment='glob(vanilla*)'
-----
-
-[cols="3*", options="header"] 
+[cols="4*", options="header"] 
 |===
-|Dataset
-|MLP network
-|Convolution Network
-
+| Dataset
 | MNIST
-| image:assets/gan/mnist_mlp.gif[mnist_mlp, {img-size}, {img-size}]
-| image:assets/gan/mnist_conv.gif[mnist_conv, {img-size}, {img-size}]
-
 | CelebA
-| TODO
-| image:assets/gan/celeba_conv.gif[cleba_conv, {img-size}, {img-size}]
-
-
 | CIFAR10
-| TODO
+
+| Results
+| image:assets/gan/mnist_mlp.gif[mnist_mlp, {img-size}, {img-size}]
+| image:assets/gan/celeba_conv.gif[cleba_conv, {img-size}, {img-size}]
 | image:assets/gan/cifar10_conv.gif[cifar10_conv, {img-size}, {img-size}]
 |===
 
-
 === WGAN
 
-Paper: _Wasserstein GAN_ https://arxiv.org/abs/1701.07875[arxiv]
-
-[source, bash]
-----
-python run.py -m experiment='glob(wgan*)'
-----
-
-[cols="3*", options="header"] 
-|===
-|Dataset
-|MLP network
-|Convolution Network
-
-| MNIST
-| TODO
-| image:assets/wgan/mnist_conv.gif[mnist_conv, {img-size}, {img-size}]
-
-|CelebA
-| TODO
-| image:assets/wgan/celeba_conv.gif[celea_conv, {img-size}, {img-size}]
-|===
 
 === WGAN-GP
 
-Paper: _Improved Training of Wasserstein GANs_ NIPS 2017 https://arxiv.org/abs/1704.00028[arxiv]
-
-[source, bash]
-----
-python run.py -m experiment='glob(wgangp*)'
-----
-
-
-[cols="3*", options="header"] 
-|===
-|Dataset
-|MLP network
-|Convolution Network
-
-| MNIST
-| image:assets/wgan_gp/mnist_mlp.gif[mnist_mlp, {img-size}, {img-size}]
-| image:assets/wgan_gp/mnist_conv.gif[mnist_conv, {img-size}, {img-size}]
-
-|CelebA
-| TODO
-| image:assets/wgan_gp/celeba_conv.gif[celea_conv, {img-size}, {img-size}]
-|===
-
 === VAE-GAN
 
-Paper: _Autoencoding beyond pixels using a learned similarity metric_ https://arxiv.org/abs/1512.09300[arxiv]
-
-[source, bash]
-----
-python run.py -m experiment='glob(vaegan*)'
-----
-
-[cols="3*", options="header"] 
-|===
-|Dataset
-|MLP network
-|Convolution Network
-
-| MNIST
-| N/A
-| image:assets/vaegan/mnist_conv.gif[mnist_conv, {img-size}, {img-size}]
-
-| CelebA
-| N/A
-| image:assets/vaegan/celeba_conv.gif[celea_conv, {img-size}, {img-size}]
-
-| CIFAR10
-| N/A
-| image:assets/vaegan/cifar10_conv.gif[cifar10_conv, {img-size}, {img-size}]
-|===
 
 === BiGAN/AIL
 
-Paper: _Adversarial Feature Learning_ https://arxiv.org/abs/1605.09782[arxiv], _Adversarially Learned Inference_ https://arxiv.org/abs/1606.00704[arxiv]
 
 == Variational Autoencoders(VAEs)
 
-=== Original VAE
-Paper: _Auto-Encoding Variational Bayes_  https://arxiv.org/abs/1312.6114[arxiv]
-
-
-[source, bash]
-----
-python run.py -m experiment='glob(vae*)'
-----
-
-[cols="3*", options="header"] 
-|===
-|Dataset
-|MLP network
-|Convolution Network
-
-| MNIST
-| image:assets/vae/mnist_mlp.gif[mnist_mlp,{img-size},{img-size}]
-| image:assets/vae/mnist_conv.gif[mnist_conv, {img-size}, {img-size}]
-
-| CelebA
-| image:assets/vae/celeba_mlp.gif[celeba_mlp, {img-size}, {img-size}]
-| image:assets/vae/celeba_conv.gif[celeba_conv, {img-size}, {img-size}]
-
-| CIFAR10
-| TODO
-| image:assets/vae/cifar10_conv.gif[celeba_conv, {img-size}, {img-size}]
-|===
-
-=== VQ-VAE
-
-Paper: _Neural Discrete Representation Learning_  https://arxiv.org/abs/1711.00937[arxiv]
-
-[source, bash]
-----
-python run.py -m experiment='glob(vqvae*)'
-----
-
-[cols="3*", options="header"] 
-|===
-|Dataset
-|MLP network
-|Convolution Network
-
-| MNIST
-| N/A
-| image:assets/vqvae/mnist_conv.gif[mnist_conv, {img-size}, {img-size}]
-
-| CelebA
-| N/A
-| image:assets/vqvae/celeba_conv.gif[celea_conv, {img-size}, {img-size}]
-
-| CIFAR10
-| N/A
-| image:assets/vqvae/cifar10_conv.gif[cifar10_conv, {img-size}, {img-size}]
-|===
-
-
-_Note: Sampling of VQ-VAE is different from vanilla vae and is not implemened, this results only shows the reconstruction results of test images._
-
 
 === AAE
-- Paper: Adversarial Autoencoders https://arxiv.org/abs/1511.05644[Paper]
-- https://github.com/Victarry/Generative-models/blob/main/src/models/aae.py[Code] 
 
 === AGE
-- Paper: It Takes (Only) Two: Adversarial Generator-Encoder Networks https://arxiv.org/abs/1704.02304[Paper]
-- https://github.com/Victarry/Generative-models/blob/main/src/models/age.py[Code] 
 
 === DDPM

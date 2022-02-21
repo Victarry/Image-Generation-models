@@ -6,4 +6,4 @@ defaults:
 
 model:
   loss_mode: vanilla
-exp_name: gan_vanilla_conv_cifar10
+exp_name: vanilla_gan/cifar10

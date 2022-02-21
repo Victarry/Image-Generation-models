@@ -1,9 +1,9 @@
 # @package _global_
 defaults:
   - override /model: gan
-  - override /networks: conv_mnist
+  - override /networks: mlp
   - override /datamodule: mnist
 
 model:
   loss_mode: vanilla
-exp_name: gan_vanilla_conv_mnist
+exp_name: vanilla_gan/mnist_mlp

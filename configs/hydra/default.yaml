@@ -2,7 +2,7 @@
 run:
   dir: logs/runs/${exp_name}
 sweep:
-  dir: logs/multiruns/${now:%Y-%m-%d_%H-%M-%S}
+  dir: logs/multiruns/
   subdir: ${exp_name}
 
 # you can set here environment variables that are universal for all users

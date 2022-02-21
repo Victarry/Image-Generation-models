@@ -5,3 +5,4 @@ height: 64
 data_dir: ${data_dir}
 batch_size: 128
 num_workers: 8
+normalize: True
