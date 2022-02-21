@@ -1,7 +1,6 @@
 from torch import nn
 import torch
 
-from src.networks.conv64 import get_norm_layer
 from .base import BaseNetwork
 from .utils import FeatureExtractor
 
@@ -18,6 +17,12 @@ def get_act_function(act="relu"):
         return nn.Tanh()
     else:
         raise NotImplementedError
+
+def get_norm_layer(batch_norm=True):
+    if batch_norm:
+        return nn.BatchNorm2d
+    else:
+        return nn.Identity
 
 class LinearAct(nn.Module):
     def __init__(
@@ -126,6 +131,7 @@ class MLPDecoder(BaseNetwork):
 class ConvDecoder(BaseNetwork):
     def __init__(self, input_channel, output_channel, ngf, batch_norm=True, output_act="tanh"):
         super().__init__(input_channel, output_channel)
+        # cause checkboard artifacts
         self.network = nn.Sequential(
             nn.ConvTranspose2d(input_channel, ngf * 4, 4, 1, 0, bias=False),
             get_norm_layer(batch_norm)(ngf * 4),

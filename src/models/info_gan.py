@@ -2,10 +2,8 @@ import torchvision
 import torch
 import hydra
 import torch.nn.functional as F
-import pytorch_lightning as pl
 from torch import nn
 from src.models.base import BaseModel
-from src.utils import utils
 import itertools
 
 
@@ -135,7 +133,7 @@ class InfoGAN(BaseModel):
 
                 # Traverse over continuous latent values while other values are fixed for each N
                 disc_c = torch.randperm(a)[:N].reshape(N, 1).repeat(1, a).reshape(N*a, 1).to(self.device)
-                cont_c_variation = torch.linspace(-1, 1, a).reshape(1, a).repeat(N, 1).reshape(N*a).to(self.device)
+                cont_c_variation = torch.linspace(-2, 2, a).reshape(1, a).repeat(N, 1).reshape(N*a).to(self.device)
                 cont_c = torch.randn(N, 1, b).repeat(1, a, 1).reshape(N*a, b).to(self.device) 
                 z = torch.randn(N, 1, c).repeat(1, a, 1).reshape(N*a, c).to(self.device) # (40, noise_dim)
 

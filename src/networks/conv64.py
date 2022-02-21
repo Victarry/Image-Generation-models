@@ -2,17 +2,12 @@ from torch import nn
 import torch
 from .base import BaseNetwork
 from .utils import FeatureExtractor
+from .basic import get_act_function, get_norm_layer
 
-
-def get_norm_layer(batch_norm=True):
-    if batch_norm:
-        return nn.BatchNorm2d
-    else:
-        return nn.Identity
 
 
 class Decoder(BaseNetwork):
-    def __init__(self, input_channel=1, output_channel=3, ngf=32, batch_norm=True):
+    def __init__(self, input_channel=1, output_channel=3, ngf=32, batch_norm=True, output_act="tanh"):
         super().__init__(input_channel, output_channel)
         self.main = nn.Sequential(
             # input is Z, going into a convolution
@@ -33,7 +28,7 @@ class Decoder(BaseNetwork):
             nn.ReLU(True),
             # state size. (ngf) x 32 x 32
             nn.ConvTranspose2d(ngf, output_channel, 4, 2, 1, bias=False),
-            nn.Tanh()
+            get_act_function(output_act)
             # state size. (nc) x 64 x 64
         )
 

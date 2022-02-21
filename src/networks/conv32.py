@@ -2,14 +2,9 @@ from torch import nn
 
 from .utils import FeatureExtractor
 from .base import BaseNetwork
+from .basic import get_norm_layer
 import torch
 
-
-def get_norm_layer(batch_norm=True):
-    if batch_norm:
-        return nn.BatchNorm2d
-    else:
-        return nn.Identity
 
 
 class Decoder(BaseNetwork):
