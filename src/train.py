@@ -11,6 +11,7 @@ from pytorch_lightning import (
 )
 from pytorch_lightning.loggers import LightningLoggerBase
 from src.utils import utils
+import GPUtil
 
 log = utils.get_logger(__name__)
 
@@ -40,6 +41,8 @@ def train(config: DictConfig):
 
     # Init lightning trainer
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
+    if isinstance(config.trainer.gpus, int):
+        config.trainer.gpus = GPUtil.getAvailable(limit=config.trainer.gpus, maxMemory=0.5, order='memory')
     trainer: Trainer = hydra.utils.instantiate(
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )

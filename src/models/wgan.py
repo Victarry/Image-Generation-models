@@ -26,6 +26,7 @@ class WGAN(BaseModel):
         b2: float = 0.999,
         input_normalize=True,
         optim="adam",
+        eval_fid=False,
         **kwargs,
     ):
         super().__init__()
@@ -59,8 +60,6 @@ class WGAN(BaseModel):
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch  # (N, C, H, W)
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
 
         # sample noise
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)

@@ -7,3 +7,5 @@ defaults:
 model:
   loss_mode: vanilla
 exp_name: vanilla_gan/celeba
+trainer:
+  max_epochs: 100

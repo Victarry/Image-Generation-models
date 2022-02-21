@@ -31,6 +31,7 @@ class GAN(BaseModel):
         b2: float = 0.999,
         input_normalize=True,
         optim="adam",
+        eval_FID=False,
         **kwargs,
     ):
         super().__init__()
@@ -53,8 +54,6 @@ class GAN(BaseModel):
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch  # (N, C, H, W)
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
 
         # sample noise
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
@@ -113,17 +112,20 @@ class GAN(BaseModel):
         torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
 
     def on_validation_epoch_start(self) -> None:
-        self.fid = torchmetrics.FID().to(self.device)
+        if self.hparams.eval_FID:
+            self.fid = torchmetrics.FID().to(self.device)
 
     def validation_step(self, batch, batch_idx):
-        imgs, _ = batch
-        self.fid.update(self.image_float2int(imgs), real=True)
-        z = torch.randn(imgs.shape[0], self.hparams.latent_dim).to(self.device)
-        fake_imgs = self(z)
-        self.fid.update(self.image_float2int(fake_imgs), real=False)
+        if self.hparams.eval_FID:
+            imgs, _ = batch
+            self.fid.update(self.image_float2int(imgs), real=True)
+            z = torch.randn(imgs.shape[0], self.hparams.latent_dim).to(self.device)
+            fake_imgs = self.forward(z)
+            self.fid.update(self.image_float2int(fake_imgs), real=False)
 
     def on_validation_epoch_end(self):
-        self.log("metrics/fid", self.fid.compute())
+        if self.hparams.eval_FID:
+            self.log("metrics/fid", self.fid.compute())
 
     def adversarial_loss(self, y_hat, y):
         if self.hparams.loss_mode == "vanilla":

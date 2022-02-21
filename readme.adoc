@@ -75,13 +75,13 @@ NeurIPS 2014. [https://arxiv.org/abs/1406.2661[PDF]] [https://arxiv.org/abs/1701
 
 [cols="4*", options="header"] 
 |===
-| Dataset
-| MNIST
-| CelebA
-| CIFAR10
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
 
-| Results
-| image:assets/gan/mnist_mlp.gif[mnist_mlp, {img-size}, {img-size}]
+^.^| Results
+| image:assets/gan/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
 | image:assets/gan/celeba_conv.gif[cleba_conv, {img-size}, {img-size}]
 | image:assets/gan/cifar10_conv.gif[cifar10_conv, {img-size}, {img-size}]
 |===
