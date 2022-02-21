@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /model: vae
+  - override /networks: conv_64
+  - override /datamodule: dsprites
+
+exp_name: beta_vae/dsprites
+model:
+  beta: 4
+  plot_latent_traverse: True
+  latent_dim: 10
+trainer:
+  max_epochs: 100
+  check_val_every_n_epoch: 100

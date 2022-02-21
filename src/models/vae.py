@@ -58,11 +58,12 @@ class VAE(BaseModel):
         beta: float = 1.0,
         recon_weight: float = 1.0,
         optim: str = "adam",
-        latent_dim: int =100,
+        latent_dim: int = 100,
         lr: float = 1e-4,
         b1: float = 0.5,
         b2: float = 0.999,
         input_normalize=True,
+        plot_latent_traverse=False,
         decoder_dist="gaussian",
         prior_dist="normal",
         **kwargs,
@@ -152,6 +153,17 @@ class VAE(BaseModel):
             anchor_dist = distributions.Normal(mu[0], torch.exp(log_sigma[0]))
             anchor_samples = anchor_dist.sample(sample_shape=[64]) # 64, latent_dim
             self.log_images(self(anchor_samples), "debug/anchor_images")
+
+            # sample traverse images
+            if self.hparams.plot_latent_traverse == True:
+                row, col = 10, 10
+                fixed_z = torch.randn(1, self.hparams.latent_dim).repeat(row*col, 1).reshape(row, col, -1).to(self.device)
+                variation_z = torch.linspace(-3, 3, col)
+                for i in range(row):
+                    z = fixed_z # (row, col, latent)
+                    z[i, :, i] = variation_z
+                imgs = self.decoder(z.reshape(row*col, -1))
+                self.log_images(imgs, f"sample/traverse_latents", nimgs=row*col, nrow=col)
 
             if self.hparams.latent_dim == 2:
                 x = torch.tensor(np.linspace(-3, 3, 20)).type_as(imgs)
