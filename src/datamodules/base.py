@@ -17,10 +17,14 @@ class BaseDatamodule(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
+            multiprocessing_context='fork'
         )
 
     def val_dataloader(self):
-        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.val_data, 
+            batch_size=self.batch_size, 
+            num_workers=self.num_workers,
+            multiprocessing_context='fork')
 
 def get_interpolation_method(method):
     if method == 'nearest':

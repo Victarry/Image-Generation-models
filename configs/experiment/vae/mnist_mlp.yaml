@@ -4,4 +4,4 @@ defaults:
   - override /networks: mlp
   - override /datamodule: mnist
 
-exp_name: vae_mlp_mnist
+exp_name: vae/mnist_mlp

@@ -1,9 +1,9 @@
 import pytorch_lightning as pl
 from torchvision.datasets import MNIST
-from .base import get_transform
+from .base import BaseDatamodule, get_transform
 
 
-class MNISTDataModule(pl.LightningDataModule):
+class MNISTDataModule(BaseDatamodule):
     def __init__(
         self,
         data_dir: str = "./data",
@@ -25,5 +25,5 @@ class MNISTDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         # Assign train/val datasets for use in dataloaders
-        self.mnist_train = MNIST(self.data_dir, train=True, transform=self.transform)
-        self.mnist_val = MNIST(self.data_dir, train=False, transform=self.transform)
+        self.train_data = MNIST(self.data_dir, train=True, transform=self.transform)
+        self.val_data = MNIST(self.data_dir, train=False, transform=self.transform)

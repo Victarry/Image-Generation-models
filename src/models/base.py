@@ -7,6 +7,7 @@ import io
 import PIL
 from torchvision.transforms import ToTensor
 import numpy as np
+import torch.nn.functional as F
 
 class BaseModel(LightningModule):
     def __init__(self, datamodule) -> None:
@@ -16,6 +17,12 @@ class BaseModel(LightningModule):
         self.height = datamodule.height
         self.channels = datamodule.channels
         self.input_normalize = datamodule.transforms.normalize
+
+    def adversarial_loss(self, y_hat, y):
+        if self.hparams.loss_mode == "vanilla":
+            return F.binary_cross_entropy_with_logits(y_hat, y)
+        elif self.hparams.loss_mode == "lsgan":
+            return F.mse_loss(y_hat, y)
 
     def get_grid_images(self, imgs, nimgs=64, nrow=8):
         imgs = imgs.reshape(

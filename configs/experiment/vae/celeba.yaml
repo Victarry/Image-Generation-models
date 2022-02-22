@@ -4,4 +4,8 @@ defaults:
   - override /networks: conv_64
   - override /datamodule: celeba
 
-exp_name: vae_conv_celeba
+exp_name: vae/celeba
+trainer:
+  max_epochs: 100
+datamodule:
+  batch_size: 128

@@ -4,4 +4,4 @@ defaults:
   - override /networks: conv_mnist
   - override /datamodule: mnist
 
-exp_name: vae_conv_mnist
+exp_name: vae/mnist_conv

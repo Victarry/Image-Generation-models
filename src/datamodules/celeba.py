@@ -21,4 +21,4 @@ class CelebADataModule(BaseDatamodule):
 
     def setup(self, stage=None):
         self.train_data = CelebA(self.data_dir, split="train", transform=self.transform)
-        self.test_data = CelebA(self.data_dir, split="test", transform=self.transform)
+        self.val_data = CelebA(self.data_dir, split="test", transform=self.transform)

@@ -33,7 +33,7 @@ class LSUNDataModule(pl.LightningDataModule):
             classes=[x + "_train" for x in self.categories],
             transform=self.transform,
         )
-        self.test_data = LSUN(
+        self.val_data = LSUN(
             self.data_dir,
             classes=[x + "_test" for x in self.categories],
             transform=self.transform,

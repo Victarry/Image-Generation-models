@@ -4,4 +4,6 @@ defaults:
   - override /networks: conv_32
   - override /datamodule: cifar10
 
-exp_name: vae_conv_cifar10
+exp_name: vae/cifar10_${model.lr}
+trainer:
+  max_epochs: 100
