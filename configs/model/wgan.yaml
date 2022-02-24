@@ -1,9 +1,8 @@
 _target_: src.models.wgan.WGAN
 # model parameters
 latent_dim: 100
-encoder_dim: 1
-lrG: 2e-4
-lrD: 2e-4
+lrG: 5e-5
+lrD: 5e-5
 b1: 0
 b2: 0.999
 optim: rmsprop

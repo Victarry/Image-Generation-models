@@ -1,4 +1,5 @@
 from pytorch_lightning import LightningModule
+import torchmetrics
 import torchvision
 from src.utils.utils import get_logger
 import torch
@@ -30,10 +31,10 @@ class BaseModel(LightningModule):
         )
         if self.input_normalize:
             grid = torchvision.utils.make_grid(
-                imgs[:nimgs], nrow=nrow, normalize=True, value_range=(-1, 1)
+                imgs[:nimgs], nrow=nrow, normalize=True, value_range=(-1, 1), pad_value=1
             )
         else:
-            grid = torchvision.utils.make_grid(imgs[:nimgs], normalize=False, nrow=nrow)
+            grid = torchvision.utils.make_grid(imgs[:nimgs], normalize=False, nrow=nrow, pad_value=1)
         return grid
     
     def log_hist(self, tensor, name):
@@ -76,3 +77,19 @@ class BaseModel(LightningModule):
         buf.seek(0)
         visual_image = ToTensor()(PIL.Image.open(buf))
         self.logger.experiment.add_image(name, visual_image, self.global_step)
+    
+    def on_validation_epoch_start(self) -> None:
+        if self.hparams.eval_fid:
+            self.fid = torchmetrics.FID().to(self.device)
+
+    def validation_step(self, batch, batch_idx):
+        if self.hparams.eval_fid:
+            imgs, _ = batch
+            self.fid.update(self.image_float2int(imgs), real=True)
+            z = torch.randn(imgs.shape[0], self.hparams.latent_dim).to(self.device)
+            fake_imgs = self.forward(z)
+            self.fid.update(self.image_float2int(fake_imgs), real=False)
+
+    def on_validation_epoch_end(self):
+        if self.hparams.eval_fid:
+            self.log("metrics/fid", self.fid.compute())

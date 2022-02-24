@@ -1,0 +1,17 @@
+# @package _global_
+defaults:
+  - override /model: wgan
+  - override /networks: conv_32
+  - override /datamodule: cifar10
+
+trainer:
+  max_epochs: 2000
+  check_val_every_n_epoch: 5
+lr: 2e-4
+model:
+  lrG: ${lr}
+  lrD: ${lr}
+  n_critic: 5
+  clip_weight: 0.01
+  eval_fid: True
+exp_name: wgan/cifar10_lr_${lr}

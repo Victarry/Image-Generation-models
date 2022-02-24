@@ -1,0 +1,15 @@
+# @package _global_
+defaults:
+  - override /model: wgan
+  - override /networks: conv_mnist
+  - override /datamodule: mnist
+
+lr: 6e-4
+trainer:
+  max_epochs: 200
+model:
+  lrG: ${lr}
+  lrD: ${lr}
+  n_critic: 5
+  clip_weight: 0.1
+exp_name: wgan/mnist_conv

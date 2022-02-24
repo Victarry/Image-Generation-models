@@ -25,7 +25,6 @@ class WGAN(BaseModel):
         input_normalize=True,
         optim="adam",
         eval_fid=False,
-        **kwargs,
     ):
         super().__init__(datamodule)
         self.save_hyperparameters()
@@ -48,10 +47,7 @@ class WGAN(BaseModel):
     def on_train_epoch_end(self):
         result_path = Path("results")
         result_path.mkdir(parents=True, exist_ok=True)
-        if hasattr(self, "z"):
-            z = self.z
-        else:
-            self.z = z = torch.randn(64, self.hparams.latent_dim).to(self.device)
+        z = torch.randn(64, self.hparams.latent_dim).to(self.device)
         imgs = self.generator(z)
         grid = self.get_grid_images(imgs)
         torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
@@ -68,10 +64,8 @@ class WGAN(BaseModel):
             p.data.clamp_(-self.hparams.clip_weight, self.hparams.clip_weight)
         # train generator, pytorch_lightning will automatically set discriminator requires_gard as False
         if optimizer_idx == 0:
-
             # generate images
             generated_imgs = self(z)
-
             # log sampled images
             self.log_images(generated_imgs, "generated_images")
 
@@ -87,7 +81,6 @@ class WGAN(BaseModel):
 
             # fake loss
             fake_loss = self.discriminator(self(z).detach()).mean()
-
             # discriminator loss is the average of these
             d_loss = real_loss + fake_loss
             self.log("train_loss/d_loss", d_loss)

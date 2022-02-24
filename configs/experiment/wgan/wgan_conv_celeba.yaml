@@ -1,9 +1,0 @@
-# @package _global_
-defaults:
-  - override /model: wgan
-  - override /networks: conv_64
-  - override /datamodule: celeba
-
-trainer:
-  max_epochs: 50
-exp_name: wgan_conv_celeba
