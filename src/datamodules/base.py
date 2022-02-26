@@ -36,8 +36,8 @@ def get_interpolation_method(method):
 
 def get_transform(config):
     transform_list = []
-    if 'grayscale' in config:
-        transform_list.append(transforms.Grayscale(1))
+    # if 'grayscale' in config:
+    #     transform_list.append(transforms.Grayscale(1))
     if 'resize' in config:
         osize = [config.resize.height, config.resize.width]
         if 'method' not in config.resize:
@@ -55,11 +55,11 @@ def get_transform(config):
 
     if 'convert' in config:
         transform_list += [transforms.ToTensor()]
-        if config.normalize:
-            if 'grayscale' in config:
-                transform_list += [transforms.Normalize((0.5,), (0.5,))]
-            else:
-                transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    if config.normalize:
+        if 'grayscale' in config:
+            transform_list += [transforms.Normalize((0.5,), (0.5,))]
+        else:
+            transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 
     if 'onehot' in config:
         transform_list += [transforms.PILToTensor()]

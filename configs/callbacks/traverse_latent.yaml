@@ -1,0 +1,2 @@
+traverse:
+  _target_: src.callbacks.evaluation.TraverseLatentCallback

@@ -6,8 +6,5 @@ height: 64
 batch_size: 128
 num_workers: 4
 transforms:
-  convert: True
+  grayscale: True
   normalize: True
-  resize:
-    width: ${datamodule.width}
-    height: ${datamodule.height}

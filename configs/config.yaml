@@ -6,11 +6,15 @@ defaults:
   - model: null
   - datamodule: null
   - networks: null
-  - callbacks: null # set this to null if you don't want to use callbacks
+  - optional dataset_networks: ${datamodule}
   - logger: tensorboard # set logger here or use command line (e.g. `python run.py logger=wandb`)
   - hydra: default
   - _self_
   - experiment: null
+  - callbacks:
+    - sample
+    - traverse_latent
+    - eval_fid
 
   # enable color logging
   - override hydra/hydra_logging: colorlog

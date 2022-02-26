@@ -9,7 +9,6 @@ from pytorch_lightning import (
     Trainer,
     seed_everything,
 )
-from pytorch_lightning.loggers import LightningLoggerBase
 from src.utils import utils
 import GPUtil
 
@@ -41,8 +40,8 @@ def train(config: DictConfig):
 
     # Init lightning trainer
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
-    if isinstance(config.trainer.gpus, int):
-        config.trainer.gpus = GPUtil.getAvailable(limit=config.trainer.gpus, maxMemory=0.5, order='memory')
+    if isinstance(config.trainer.gpus, int) and config.trainer.gpus > 0:
+        config.trainer.gpus = GPUtil.getAvailable(limit=config.trainer.gpus, maxMemory=0.5, order='random')
     trainer: Trainer = hydra.utils.instantiate(
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )

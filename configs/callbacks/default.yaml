@@ -1,3 +1,0 @@
-convert_gif:
-  _target_: src.callbacks.util.GifCallback
- 

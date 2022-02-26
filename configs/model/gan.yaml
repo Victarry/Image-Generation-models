@@ -1,11 +1,9 @@
 _target_: src.models.gan.GAN
 loss_mode: vanilla
 latent_dim: 100
-encoder_dim: 1
 lrG: 0.0002
 lrD: 0.0002
 b1: 0.5
 b2: 0.999
-optim: adam
 netG: ${networks.decoder}
 netD: ${networks.encoder}

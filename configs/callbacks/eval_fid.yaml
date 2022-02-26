@@ -1,0 +1,2 @@
+eval_fid:
+  _target_: src.callbacks.evaluation.FIDEvaluationCallback
