@@ -11,10 +11,7 @@ defaults:
   - hydra: default
   - _self_
   - experiment: null
-  - callbacks:
-    - sample
-    - traverse_latent
-    - eval_fid
+  - callbacks: default
 
   # enable color logging
   - override hydra/hydra_logging: colorlog

@@ -1,2 +1,2 @@
 traverse:
-  _target_: src.callbacks.evaluation.TraverseLatentCallback
+  _target_: src.callbacks.visualization.TraverseLatentCallback

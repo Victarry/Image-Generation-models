@@ -14,3 +14,7 @@ def adversarial_loss(pred, target_is_real=True, loss_mode="vanilla"):
         else:
             target = torch.zeros_like(pred)
         return F.mse_loss(pred, target)
+
+def normal_kld(mu, log_sigma):
+    kl_divergence = -0.5 * torch.sum(1 + 2 * log_sigma - mu ** 2 - torch.exp(2 * log_sigma), dim=-1).mean(dim=0)
+    return kl_divergence

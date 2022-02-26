@@ -1,4 +1,4 @@
 sample:
-  _target_: src.callbacks.evaluation.SampleImagesCallback
+  _target_: src.callbacks.visualization.SampleImagesCallback
   batch_size: 64
   every_n_epochs: 1

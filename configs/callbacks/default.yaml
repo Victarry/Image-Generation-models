@@ -1,0 +1,5 @@
+defaults:
+  - eval_fid
+  - latent_visual
+  - sample
+  - traverse_latent

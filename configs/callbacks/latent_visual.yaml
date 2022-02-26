@@ -1,0 +1,2 @@
+latent_visual:
+  _target_: src.callbacks.visualization.LatentVisualizationCallback
