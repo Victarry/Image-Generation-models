@@ -4,9 +4,8 @@
 defaults:
   - trainer: default
   - model: null
-  - datamodule: null
   - networks: null
-  - optional dataset_networks: ${datamodule}
+  - datamodule: null
   - logger: tensorboard # set logger here or use command line (e.g. `python run.py logger=wandb`)
   - hydra: default
   - _self_

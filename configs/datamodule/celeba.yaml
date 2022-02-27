@@ -1,3 +1,6 @@
+defaults:
+  - override /networks@_global_: conv_64
+
 _target_: src.datamodules.celeba.CelebADataModule
 data_dir: ${data_dir}
 width: 64

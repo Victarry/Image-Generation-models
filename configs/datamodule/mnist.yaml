@@ -1,3 +1,6 @@
+defaults:
+  - override /networks@_global_: mnist_conv
+
 _target_: src.datamodules.mnist.MNISTDataModule
 data_dir: ${data_dir}
 channels: 1
