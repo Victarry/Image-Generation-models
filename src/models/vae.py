@@ -4,7 +4,7 @@ from omegaconf import OmegaConf
 
 from src.models.base import BaseModel, ValidationResult
 from torch import distributions
-from src.utils.distributions import GaussianDistribution
+from src.utils.distributions import get_decode_dist
 from src.utils.losses import normal_kld
 
 
@@ -20,12 +20,14 @@ class VAE(BaseModel):
         lr: float = 1e-4,
         b1: float = 0.5,
         b2: float = 0.999,
+        decoder_dist = "guassian"
     ):
         super().__init__(datamodule)
         self.save_hyperparameters()
 
-        self.decoder = instantiate(decoder, input_channel=latent_dim, output_channel=self.channels)
+        self.decoder = instantiate(decoder, input_channel=latent_dim, output_channel=self.channels, output_act=self.output_act)
         self.encoder = instantiate(encoder, input_channel=self.channels, output_channel=2 * latent_dim)
+        self.decoder_dist = get_decode_dist(decoder_dist)
 
     def forward(self, z):
         """Generate images given latent code."""
@@ -60,7 +62,8 @@ class VAE(BaseModel):
 
         mu, log_sigma, z, recon_imgs = self.vae(imgs)
         kld = normal_kld(mu, log_sigma)
-        log_p_x_of_z = GaussianDistribution(recon_imgs).prob(imgs).mean(dim=0)
+
+        log_p_x_of_z = self.decoder_dist.prob(recon_imgs, imgs).mean(dim=0)
         elbo = -self.hparams.beta*kld + self.hparams.recon_weight * log_p_x_of_z
 
         self.log("train_log/elbo", elbo)
@@ -72,7 +75,7 @@ class VAE(BaseModel):
         imgs, labels = batch
         N = imgs.shape[0]
         mu, log_sigma, z, recon_imgs = self.vae(imgs)
-        log_p_x_of_z = GaussianDistribution(recon_imgs).prob(imgs).mean(dim=0)
+        log_p_x_of_z = self.decoder_dist.prob(recon_imgs, imgs).mean(dim=0)
 
         fake_imgs = self.sample(N)
         self.log("val_log/log_p_x_of_z", log_p_x_of_z)

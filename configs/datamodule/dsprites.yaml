@@ -10,4 +10,4 @@ batch_size: 128
 num_workers: 4
 transforms:
   grayscale: True
-  normalize: True
+  normalize: False

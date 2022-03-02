@@ -1,3 +1,4 @@
+from random import randint
 import numpy as np
 import pytorch_lightning as pl
 from pathlib import Path
@@ -43,21 +44,33 @@ class TraverseLatentCallback(pl.Callback):
         self.col = col
         self.row = row
     
-    def generate_traverse_images(self, pl_module):
-        row, col = min(10, pl_module.hparams.latent_dim), 11
-        fixed_z = torch.randn(1, 1, pl_module.hparams.latent_dim).repeat(row, col, 1).reshape(row, col, -1).to(pl_module.device)
-        variation_z = torch.linspace(-3, 3, col).to(pl_module.device)
-        for i in range(row):
-            fixed_z[i, :, i] += variation_z # i-th row correspondes to i-th latent unit variation
+    def generate_traverse_images(self, pl_module, fixed_z=None):
+        row, col = 11, min(10, pl_module.hparams.latent_dim)
+        if fixed_z is None:
+            fixed_z = torch.randn(1, 1, pl_module.hparams.latent_dim).repeat(row, col, 1).reshape(row, col, -1).to(pl_module.device)
+        else:
+            fixed_z = fixed_z.reshape(1, 1, pl_module.hparams.latent_dim).repeat(row, col, 1).reshape(row, col, -1)
+        variation_z = torch.linspace(-3, 3, row).to(pl_module.device)
+        for i in range(col):
+            fixed_z[:, i, i] = variation_z # i-th column correspondes to i-th latent unit variation
         imgs = pl_module.forward(fixed_z.reshape(row*col, -1))
         grid = get_grid_images(imgs, pl_module, nimgs=row*col, nrow=col)
         return grid
     
+    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx, dataloader_idx: int):
+        if batch_idx == 0:
+            self.z = outputs.encode_latent
+    
     def on_validation_epoch_end(self, trainer, pl_module):
-        grid1 = self.generate_traverse_images(pl_module)
-        grid2 = self.generate_traverse_images(pl_module)
-        trainer.logger.experiment.add_image("sample/traverse_latents_1", grid1, global_step=trainer.current_epoch)
-        trainer.logger.experiment.add_image("sample/traverse_latents_2", grid2, global_step=trainer.current_epoch)
+        if self.z is not None:
+            grid1 = self.generate_traverse_images(pl_module, self.z[3])
+            trainer.logger.experiment.add_image("sample/fixed_traverse_latents_1", grid1, global_step=trainer.current_epoch)
+        if self.z is not None:
+            grid2 = self.generate_traverse_images(pl_module, self.z[6])
+            trainer.logger.experiment.add_image("sample/fixed_traverse_latents_2", grid2, global_step=trainer.current_epoch)
+
+        grid = self.generate_traverse_images(pl_module)
+        trainer.logger.experiment.add_image("sample/random_traverse_latents", grid, global_step=trainer.current_epoch)
 
 class Visual2DSpaecCallback(pl.Callback):
     def __init__(self) -> None:

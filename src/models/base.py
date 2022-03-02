@@ -14,6 +14,8 @@ class ValidationResult():
     real_image: torch.Tensor = None
     fake_image: torch.Tensor = None
     recon_image: torch.Tensor = None
+    label: torch.Tensor = None
+    encode_latent: torch.Tensor = None
 
 class BaseModel(LightningModule):
     def __init__(self, datamodule) -> None:
@@ -23,9 +25,14 @@ class BaseModel(LightningModule):
         self.height = datamodule.height
         self.channels = datamodule.channels
         self.input_normalize = datamodule.transforms.normalize
+        if self.input_normalize:
+            self.output_act = "tanh"
+        else:
+            self.output_act = "sigmoid"
 
-    def sample(self, z=None, N=None):
-        pass
+    def sample(self, N: int):
+        z = torch.randn(N, self.hparams.latent_dim).to(self.device)
+        return self.forward(z)
 
     def plot_scatter(self, name, x, y, c=None, s=None, xlim=None, ylim=None):
         x, y, c, s = tensor_to_array(x, y, c, s)
@@ -43,7 +50,7 @@ class BaseModel(LightningModule):
         buf.seek(0)
         visual_image = ToTensor()(PIL.Image.open(buf))
         self.logger.experiment.add_image(name, visual_image, self.global_step)
-    
+
 def tensor_to_array(*tensors):
     output = []
     for tensor in tensors:

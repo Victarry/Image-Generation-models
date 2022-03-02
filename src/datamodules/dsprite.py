@@ -2,12 +2,12 @@ import numpy as np
 import pytorch_lightning as pl
 from pathlib import Path
 import torch
-from .base import get_transform
+from .base import BaseDatamodule, get_transform
 from .utils import url_retrive, CustomTensorDataset
 from torch.utils.data import random_split
 
 
-class DataModule(pl.LightningDataModule):
+class DataModule(BaseDatamodule):
     def __init__(
         self,
         data_dir: str = "./data",
@@ -38,6 +38,5 @@ class DataModule(pl.LightningDataModule):
         data = np.load(self.data_file, encoding='latin1')
         data = torch.from_numpy(data['imgs']).unsqueeze(1).float()
         length = data.shape[0]
-        train_data, val_data = random_split(data, [8*length // 10, 2*length // 10])
-        self.train_data = CustomTensorDataset(train_data, transform=self.transform)
-        self.val_data = CustomTensorDataset(val_data, transform=self.transform)
+        full_data = CustomTensorDataset(data, transform=self.transform)
+        self.train_data, self.val_data = random_split(full_data, [8*length // 10, 2*length // 10], generator=torch.Generator().manual_seed(666))

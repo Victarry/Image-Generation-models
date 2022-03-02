@@ -7,8 +7,12 @@ defaults:
 exp_name: beta_vae/dsprites
 model:
   beta: 4
-  plot_latent_traverse: True
   latent_dim: 10
+networks:
+  encoder:
+    batch_norm: False
+  decoder:
+    batch_norm: False
 trainer:
   max_epochs: 100
   check_val_every_n_epoch: 100
