@@ -18,28 +18,39 @@ def get_act_function(act="relu"):
     else:
         raise NotImplementedError
 
-def get_norm_layer(batch_norm=True):
-    if batch_norm:
+def get_norm_layer(norm_type="batch"):
+    if norm_type == "batch":
         return nn.BatchNorm2d
-    else:
+    elif norm_type == "instance":
+        return nn.InstanceNorm2d
+    elif norm_type == None:
         return nn.Identity
+    else:
+        raise NotImplementedError(f"Norm type of {norm_type} is not implemented")
+
+def get_norm_layer_1d(norm_type="batch"):
+    if norm_type == "batch":
+        return nn.BatchNorm1d
+    elif norm_type == "instance":
+        return nn.InstanceNorm1d
+    elif norm_type == None:
+        return nn.Identity
+    else:
+        raise NotImplementedError(f"Norm type of {norm_type} is not implemented")
 
 class LinearAct(nn.Module):
     def __init__(
-        self, input_channel, output_channel, act="relu", dropout=0, batch_norm=False
+        self, input_channel, output_channel, act="relu", dropout=0, norm_type="batch"
     ):
         super().__init__()
         self.act = get_act_function(act)
         self.fc = nn.Linear(input_channel, output_channel)
         self.dropout = nn.Dropout(dropout)
-        if batch_norm:
-            self.bn = nn.BatchNorm1d(output_channel)
-        else:
-            self.bn = nn.Identity()
+        self.norm = get_norm_layer_1d(norm_type)(output_channel)
 
     def forward(self, x):
         # NOTE: batch_norm should be placed before activation, otherwise netD will not converge
-        return self.dropout(self.act(self.bn(self.fc(x))))
+        return self.dropout(self.act(self.norm(self.fc(x))))
 
 
 class MLPEncoder(BaseNetwork):
@@ -51,10 +62,8 @@ class MLPEncoder(BaseNetwork):
         width,
         height,
         dropout=0,
-        batch_norm=True,
+        norm_type="batch",
         return_features=False,
-        first_batch_norm=False,
-        last_batch_norm=False,
         output_act="identity",
     ):
         super().__init__(input_channel, output_channel)
@@ -70,16 +79,16 @@ class MLPEncoder(BaseNetwork):
                 hidden_dims[0],
                 "leaky_relu",
                 dropout=dropout,
-                batch_norm=first_batch_norm,
+                norm_type=None,
             ),
             *[
-                LinearAct(x, y, "leaky_relu", dropout=dropout, batch_norm=batch_norm)
+                LinearAct(x, y, "leaky_relu", dropout=dropout, norm_type=norm_type)
                 for x, y in zip(hidden_dims[:-1], hidden_dims[1:])
             ],
         )
         self.feature_extractor(self.model)
         self.classifier = LinearAct(
-            hidden_dims[-1], output_channel, output_act, batch_norm=last_batch_norm
+            hidden_dims[-1], output_channel, output_act, norm_type=None
         )
 
     def forward(self, x):
@@ -104,7 +113,7 @@ class MLPDecoder(BaseNetwork):
         width,
         height,
         output_act,
-        batch_norm=True,
+        norm_type="batch",
     ):
         super().__init__(input_channel, output_channel)
         self.width = width
@@ -113,14 +122,14 @@ class MLPDecoder(BaseNetwork):
         dims = [input_channel, *hidden_dims]
         self.model = nn.Sequential(
             *[
-                LinearAct(x, y, "relu", batch_norm=batch_norm)
+                LinearAct(x, y, "relu", norm_type=norm_type)
                 for x, y in zip(dims[:-1], dims[1:])
             ],
             LinearAct(
                 hidden_dims[-1],
                 output_channel * width * height,
                 act=output_act,
-                batch_norm=False,
+                norm_type=False,
             ),
         )
 
@@ -129,20 +138,20 @@ class MLPDecoder(BaseNetwork):
 
 
 class ConvDecoder(BaseNetwork):
-    def __init__(self, input_channel, output_channel, ngf, batch_norm=True, output_act="tanh"):
+    def __init__(self, input_channel, output_channel, ngf, norm_type="batch", output_act="tanh"):
         super().__init__(input_channel, output_channel)
         # cause checkboard artifacts
         self.network = nn.Sequential(
-            nn.ConvTranspose2d(input_channel, ngf * 4, 4, 1, 0, bias=False),
-            get_norm_layer(batch_norm)(ngf * 4),
+            nn.ConvTranspose2d(input_channel, ngf * 4, 4, 1, 0),
+            get_norm_layer(norm_type)(ngf * 4),
             nn.ReLU(True),
-            nn.ConvTranspose2d(ngf * 4, ngf * 2, 3, 2, 1, bias=False),
-            get_norm_layer(batch_norm)(ngf * 2),
+            nn.ConvTranspose2d(ngf * 4, ngf * 2, 3, 2, 1),
+            get_norm_layer(norm_type)(ngf * 2),
             nn.ReLU(True),
-            nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1, bias=False),
-            get_norm_layer(batch_norm)(ngf),
+            nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1),
+            get_norm_layer(norm_type)(ngf),
             nn.ReLU(True),
-            nn.ConvTranspose2d(ngf, output_channel, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(ngf, output_channel, 4, 2, 1),
             get_act_function(output_act)
         )
 
@@ -155,7 +164,7 @@ class ConvDecoder(BaseNetwork):
 
 class ConvEncoder(BaseNetwork):
     def __init__(
-        self, input_channel, output_channel, ndf, batch_norm=True, return_features=False
+        self, input_channel, output_channel, ndf, norm_type="batch", return_features=False
     ):
         super().__init__(input_channel, output_channel)
         self.return_features = return_features
@@ -165,15 +174,15 @@ class ConvEncoder(BaseNetwork):
             self.feature_extractor = lambda x: x
         self.output_channel = output_channel
         self.network = nn.Sequential(
-            nn.Conv2d(input_channel, ndf, 4, 2, 1, bias=False),
+            nn.Conv2d(input_channel, ndf, 4, 2, 1),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
-            get_norm_layer(batch_norm)(ndf * 2),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(ndf * 2, ndf * 4, 3, 2, 1, bias=False),
-            get_norm_layer(batch_norm)(ndf * 4),
+            nn.Conv2d(ndf, ndf * 2, 4, 2, 1),
+            get_norm_layer(norm_type)(ndf * 2),
+            nn.LeakyReLU(0.2),
+            nn.Conv2d(ndf * 2, ndf * 4, 3, 2, 1),
+            get_norm_layer(norm_type)(ndf * 4),
             self.feature_extractor(nn.LeakyReLU(0.2, inplace=True)),
-            nn.Conv2d(ndf * 4, output_channel, 4, 1, 0, bias=False),
+            nn.Conv2d(ndf * 4, output_channel, 4, 1, 0),
         )
 
     def forward(self, x):

@@ -1,0 +1,15 @@
+# @package _global_
+defaults:
+  - override /model: wgan_gp
+  - override /networks: conv_64
+  - override /datamodule: celeba
+
+networks:
+  encoder:
+    norm_type: instance
+  decoder:
+    norm_type: instance
+
+trainer:
+  max_epochs: 100
+exp_name: wgangp/celeba

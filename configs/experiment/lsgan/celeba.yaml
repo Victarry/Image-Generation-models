@@ -4,8 +4,10 @@ defaults:
   - override /networks: conv_64
   - override /datamodule: celeba
 
-exp_name: vanilla_gan/celeba
+exp_name: lsgan/celeba
 model:
-  loss_mode: vanilla
+  loss_mode: lsgan
+  lrG: 2e-4
+  lrD: 2e-4
 trainer:
   max_epochs: 100

@@ -1,18 +1,22 @@
 # @package _global_
 defaults:
-  - override /model: vae
+  - override /model: factor_vae
   - override /networks: conv_64
   - override /datamodule: dsprites
 
-exp_name: beta_vae/dsprites
+exp_name: factor_vae/dsprites
 model:
-  beta: 4
+  adv_weight: 35
   latent_dim: 10
+  lr: 2e-4
+  lrD: 1e-4
   decoder_dist: bernoulli
+
+trainer:
+  max_epochs: 100
+
 networks:
   encoder:
     norm_type: null
   decoder:
     norm_type: null
-trainer:
-  max_epochs: 100

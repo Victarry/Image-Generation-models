@@ -17,7 +17,7 @@ class GaussianDistribution(nn.Module):
 
     def prob(self, pred, target):
         dist = D.Normal(pred, torch.ones_like(pred))
-        p_x = dist.log_prob(pred).sum(dim=[1,2,3])
+        p_x = dist.log_prob(target).sum(dim=[1,2,3])
         return p_x
 
 class BernoulliDistribution(nn.Module):

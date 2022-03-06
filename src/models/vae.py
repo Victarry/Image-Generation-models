@@ -18,7 +18,7 @@ class VAE(BaseModel):
         beta: float = 1.0,
         recon_weight: float = 1.0,
         lr: float = 1e-4,
-        b1: float = 0.5,
+        b1: float = 0.9,
         b2: float = 0.999,
         decoder_dist = "guassian"
     ):

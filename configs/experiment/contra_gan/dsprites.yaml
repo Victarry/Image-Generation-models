@@ -1,0 +1,15 @@
+# @package _global_
+defaults:
+  - override /model: contra_gan
+  - override /networks: conv_64
+  - override /datamodule: dsprites
+
+exp_name: contra_gan/dsprites
+model:
+  loss_mode: lsgan
+  lrG: 2e-4
+  lrD: 2e-4
+datamodule:
+  batch_size: 64
+trainer:
+  max_epochs: 100

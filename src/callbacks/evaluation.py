@@ -26,4 +26,4 @@ class FIDEvaluationCallback(pl.Callback):
 
     def on_validation_epoch_end(self, trainer, pl_module: pl.LightningModule):
         if pl_module.channels == 3 and trainer.current_epoch % self.every_n_epoch == 0:
-            pl_module.log("metrics/fid", self.fid.compute())
+            pl_module.log("metrics/fid", self.fid.compute(), on_epoch=True)

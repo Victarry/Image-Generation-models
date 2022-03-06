@@ -9,7 +9,7 @@ decoder:
     - 256
     - 512
   output_act: tanh
-  batch_norm: True
+  norm_type: batch
 encoder:
   _target_: src.networks.basic.MLPEncoder
   input_channel: null
@@ -21,4 +21,4 @@ encoder:
     - 256
     - 512
   dropout: 0
-  batch_norm: True
+  norm_type: batch

@@ -118,17 +118,17 @@ class InfoGAN(BaseModel):
             return g_loss + self.hparams.lambda_I * I_loss
 
         if optimizer_idx == 1:
-            real_logit = self.netD(self.common_layer(imgs))
-            real_loss = adversarial_loss(real_logit, target_is_real=True)
+            pred_real = self.netD(self.common_layer(imgs))
+            real_loss = adversarial_loss(pred_real, target_is_real=True)
 
-            fake_logit = self.encode(self.decode(N).detach())
-            fake_loss = adversarial_loss(fake_logit, target_is_real=False)
+            pred_fake = self.encode(self.decode(N).detach())
+            fake_loss = adversarial_loss(pred_fake, target_is_real=False)
 
             d_loss = (real_loss + fake_loss) / 2
 
             self.log("train_loss/d_loss", d_loss)
-            self.log("train_log/real_logit", real_logit.mean())
-            self.log("train_log/fake_logit", fake_logit.mean())
+            self.log("train_log/pred_real", pred_real.mean())
+            self.log("train_log/pred_fake", pred_fake.mean())
 
             return d_loss
 
@@ -137,32 +137,33 @@ class InfoGAN(BaseModel):
         grid_images = get_grid_images(generated_images, self, 64, 8)
         self.logger.experiment.add_image("images/sample", grid_images, global_step=self.current_epoch)
 
-        N = 8
+        N = 8 # row of images
         a, b, c = self.hparams.discrete_value, self.hparams.continuous_dim, self.hparams.noise_dim
         # each row has `a` values and totally N rows
         # Traverse over discrete latent value while other values are fixed for each N
         disc_c = torch.arange(a).reshape(1, a).repeat(N, 1).reshape(N*a, 1).to(self.device)
         cont_c = torch.randn(N, 1, b).repeat(1, a, 1).reshape(N*a, b).to(self.device) 
         z = torch.randn(N, 1, c).repeat(1, a, 1).reshape(N*a, c).to(self.device) # (40, noise_dim)
-        imgs = self.decode(40, disc_c, cont_c, z)
+        imgs = self.decode(N*a, disc_c, cont_c, z)
 
-        grid_images = get_grid_images(imgs, self, 40, 10)
+        grid_images = get_grid_images(imgs, self, N*a, a)
         self.logger.experiment.add_image("visual/traverse over discrete values", grid_images, global_step=self.current_epoch)
 
+        col = 10
         # Traverse over continuous latent values while other values are fixed for each N
-        disc_c = torch.randperm(a)[:N].reshape(N, 1).repeat(1, a).reshape(N*a, 1).to(self.device)
-        cont_c_variation = torch.linspace(-2, 2, a).reshape(1, a).repeat(N, 1).reshape(N*a).to(self.device)
-        cont_c = torch.randn(N, 1, b).repeat(1, a, 1).reshape(N*a, b).to(self.device) 
-        z = torch.randn(N, 1, c).repeat(1, a, 1).reshape(N*a, c).to(self.device) # (40, noise_dim)
+        disc_c = torch.randint(low=0, high=a, size=(N, 1)).repeat(1, col).reshape(N*col, 1).to(self.device)
+        cont_c_variation = torch.linspace(-2, 2, col).reshape(1, col).repeat(N, 1).reshape(N*col).to(self.device)
+        cont_c = torch.randn(N, 1, b).repeat(1, col, 1).reshape(N*col, b).to(self.device) 
+        z = torch.randn(N, 1, c).repeat(1, col, 1).reshape(N*col, c).to(self.device) # (N*a, noise_dim)
 
         cont_c_mix = cont_c.clone()
         cont_c_mix[:, 0] = cont_c_variation
-        imgs = self.decode(40, disc_c, cont_c_mix, z)
-        grid_images = get_grid_images(imgs, self, 40, 10)
+        imgs = self.decode(N*col, disc_c, cont_c_mix, z)
+        grid_images = get_grid_images(imgs, self, N*col, col)
         self.logger.experiment.add_image("visual/traverse over first continuous values", grid_images, global_step=self.current_epoch)
 
         cont_c_mix = cont_c.clone()
         cont_c_mix[:, 1] = cont_c_variation
-        imgs = self.decode(40, disc_c, cont_c_mix, z)
-        grid_images = get_grid_images(imgs, self, 40, 10)
+        imgs = self.decode(N*col, disc_c, cont_c_mix, z)
+        grid_images = get_grid_images(imgs, self, N*col, col)
         self.logger.experiment.add_image("visual/traverse over second continuous values", grid_images, global_step=self.current_epoch)

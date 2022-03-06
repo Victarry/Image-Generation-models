@@ -2,10 +2,14 @@
 defaults:
   - override /model: gan
   - override /networks: conv_64
-  - override /datamodule: celeba
+  - override /datamodule: dsprites
 
-exp_name: vanilla_gan/celeba
+exp_name: vanilla_gan/dsprites
 model:
   loss_mode: vanilla
+  lrG: 2e-3
+  lrD: 2e-3
+datamodule:
+  batch_size: 1024
 trainer:
   max_epochs: 100

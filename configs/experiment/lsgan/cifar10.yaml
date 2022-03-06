@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - override /model: gan
+  - override /networks: conv_32
+  - override /datamodule: cifar10
+
+exp_name: lsgan/cifar10
+model:
+  loss_mode: lsgan
+trainer:
+  max_epochs: 100

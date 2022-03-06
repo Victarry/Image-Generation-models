@@ -20,10 +20,9 @@ class WGAN(BaseModel):
         clip_weight=0.01,
         lrG: float = 2e-4,
         lrD: float = 2e-4,
-        b1: float = 0.5,
-        b2: float = 0.999,
+        b1: float = 0,
+        b2: float = 0.99,
         input_normalize=True,
-        optim="adam",
         eval_fid=False,
     ):
         super().__init__(datamodule)
@@ -55,34 +54,24 @@ class WGAN(BaseModel):
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch  # (N, C, H, W)
 
-        # sample noise
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
         z = z.type_as(imgs)
 
-        # clip discriminator weight for 1-Lipschitz constraint, clip的位置影响很大...
+        # clip discriminator weight for 1-Lipschitz constraint
         for p in self.discriminator.parameters():
             p.data.clamp_(-self.hparams.clip_weight, self.hparams.clip_weight)
-        # train generator, pytorch_lightning will automatically set discriminator requires_gard as False
-        if optimizer_idx == 0:
-            # generate images
-            generated_imgs = self(z)
-            # log sampled images
-            self.log_images(generated_imgs, "generated_images")
 
-            # adversarial loss is binary cross-entropy
+        if optimizer_idx == 0:
+            generated_imgs = self(z)
             g_loss = -torch.mean(self.discriminator(generated_imgs))
             self.log("train_loss/g_loss", g_loss, prog_bar=True)
             return g_loss
 
-        # train discriminator
         if optimizer_idx == 1:
-            # real loss
             real_loss = -self.discriminator(imgs).mean()
-
-            # fake loss
             fake_loss = self.discriminator(self(z).detach()).mean()
-            # discriminator loss is the average of these
             d_loss = real_loss + fake_loss
+
             self.log("train_loss/d_loss", d_loss)
             self.log("train_log/real_logit", -real_loss)
             self.log("train_log/fake_logit", fake_loss)
@@ -95,19 +84,12 @@ class WGAN(BaseModel):
         b1 = self.hparams.b1
         b2 = self.hparams.b2
 
-        if self.hparams.optim == "adam":
-            opt_g = torch.optim.Adam(
-                self.generator.parameters(), lr=lrG, betas=(b1, b2)
-            )
-            opt_d = torch.optim.Adam(
-                self.discriminator.parameters(), lr=lrD, betas=(b1, b2)
-            )
-        elif self.hparams.optim == "sgd":
-            opt_g = torch.optim.SGD(self.generator.parameters(), lr=lrG)
-            opt_d = torch.optim.SGD(self.discriminator.parameters(), lr=lrD)
-        elif self.hparams.optim == "rmsprop":
-            opt_g = torch.optim.RMSprop(self.generator.parameters(), lr=lrG)
-            opt_d = torch.optim.RMSprop(self.discriminator.parameters(), lr=lrD)
+        opt_g = torch.optim.Adam(
+            self.generator.parameters(), lr=lrG, betas=(b1, b2)
+        )
+        opt_d = torch.optim.Adam(
+            self.discriminator.parameters(), lr=lrD, betas=(b1, b2)
+        )
         return [
             {"optimizer": opt_g, "frequency": 1},
             {"optimizer": opt_d, "frequency": self.hparams.n_critic},

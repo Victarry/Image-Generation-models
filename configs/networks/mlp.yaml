@@ -5,11 +5,12 @@ decoder:
   width: ${datamodule.width}
   height: ${datamodule.height}
   hidden_dims:
-    - 512
-    - 512
-    - 512
+    - 1200
+    - 1200
+    - 1200
+    - 4096
   output_act: tanh
-  batch_norm: True
+  norm_type: batch
 encoder:
   _target_: src.networks.basic.MLPEncoder
   input_channel: null
@@ -17,9 +18,8 @@ encoder:
   width: ${datamodule.width}
   height: ${datamodule.height}
   hidden_dims:
-    - 512
-    - 512
-    - 512
+    - 1200
+    - 1200
   dropout: 0
   output_act: identity
-  batch_norm: True
+  norm_type: batch

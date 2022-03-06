@@ -3,10 +3,10 @@ decoder:
   input_channel: null
   output_channel: null
   ngf: 32
-  batch_norm: True
+  norm_type: batch
 encoder:
   _target_: src.networks.basic.ConvEncoder
   input_channel: null
   output_channel: null
   ndf: 32
-  batch_norm: True
+  norm_type: batch

@@ -1,12 +1,10 @@
 _target_: src.models.wgan_gp.WGAN
 # model parameters
 latent_dim: 100
-encoder_dim: 1
 lrG: 1e-4
 lrD: 1e-4
 b1: 0
 b2: 0.9
-optim: adam
 netG: ${networks.decoder}
 netD: ${networks.encoder}
 # special for wgan
