@@ -107,8 +107,26 @@ NeurIPS 2014. [https://arxiv.org/abs/1406.2661[PDF]] [https://arxiv.org/abs/1701
 | image:assets/gan/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
+=== LSGAN
+*_Least Squares Generative Adversarial Networks._* +
+Xudong Mao, Qing Li, Haoran Xie, Raymond Y.K. Lau, Zhen Wang, Stephen Paul Smolley. +
+ICCV 2017. [https://arxiv.org/abs/1611.04076[PDF]]
+
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
+
+^.^| Results
+| image:assets/lsgan/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/lsgan/celeba.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/lsgan/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
+
 === WGAN
-**Wasserstein GAN** +
+*_Wasserstein GAN_* +
 Martin Arjovsky, Soumith Chintala, Léon Bottou. +
 ICML 2017. [https://arxiv.org/abs/1701.07875[PDF]]
 
@@ -126,6 +144,7 @@ ICML 2017. [https://arxiv.org/abs/1701.07875[PDF]]
 |===
 
 === WGAN-GP
+
 
 === VAE-GAN
 
