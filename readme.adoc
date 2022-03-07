@@ -161,6 +161,22 @@ NeurIPS 2017. [https://arxiv.org/abs/1704.00028[PDF]]
 |===
 
 === VAE-GAN
+*_Autoencoding beyond pixels using a learned similarity metric._* +
+Anders Boesen Lindbo Larsen, Søren Kaae Sønderby, Hugo Larochelle, Ole Winther. +
+ICML 2016. [https://arxiv.org/abs/1512.09300[PDF]]
+
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
+
+^.^| Results
+| image:assets/vaegan/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/vaegan/celeba.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/vaegan/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
 
 === BiGAN/AIL
 

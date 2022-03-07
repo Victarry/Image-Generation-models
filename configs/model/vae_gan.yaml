@@ -1,12 +1,9 @@
 _target_: src.models.vae_gan.VAEGAN
 loss_mode: vanilla
 latent_dim: 100
-encoder_dim: 1
-lrG: 0.0002
-lrD: 0.0002
+lr: 0.0002
 b1: 0.5
-b2: 0.999
-optim: adam
-recon_weight: 0.01
+b2: 0.99
+recon_weight: 1e-4
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}

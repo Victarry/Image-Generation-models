@@ -6,5 +6,5 @@ defaults:
 
 model:
   loss_mode: vanilla
-  recon_weight: 0.01
-exp_name: vaegan_conv_mnist
+  recon_weight: 1e-3
+exp_name: vaegan/mnist
