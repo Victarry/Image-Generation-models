@@ -6,9 +6,9 @@ defaults:
 
 networks:
   encoder:
-    batch_norm: False
+    norm_type: instance
   decoder:
-    batch_norm: False
+    norm_type: instance
 
 model:
   lrD: 1e-3
@@ -16,4 +16,4 @@ model:
 
 trainer:
   max_epochs: 100
-exp_name: wgangp_conv_cifar10
+exp_name: wgangp/cifar10

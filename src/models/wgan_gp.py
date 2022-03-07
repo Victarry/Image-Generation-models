@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import torchvision
 from src.utils import utils
-from .base import BaseModel
+from .base import BaseModel, ValidationResult
 
 
 class WGAN(BaseModel):
@@ -20,7 +20,7 @@ class WGAN(BaseModel):
         lrG: float = 2e-4,
         lrD: float = 2e-4,
         b1: float = 0,
-        b2: float = 0.99,
+        b2: float = 0.9,
         gp_weight=10,
     ):
         super().__init__(datamodule)
@@ -101,3 +101,9 @@ class WGAN(BaseModel):
             self.log("train_log/gradient_panelty", gradient_panelty)
 
             return d_loss
+
+    def validation_step(self, batch, batch_idx):
+        img, _ = batch
+        z = torch.randn(img.shape[0], self.hparams.latent_dim).to(self.device)
+        fake_imgs = self.forward(z)
+        return ValidationResult(real_image=img, fake_image=fake_imgs)

@@ -1,15 +1,15 @@
 # @package _global_
 defaults:
   - override /model: wgan_gp
-  - override /networks: conv_mnist
+  - override /networks: mlp
   - override /datamodule: mnist
 
 networks:
   encoder:
-    batch_norm: False
+    norm_type: batch
   decoder:
-    batch_norm: False
+    norm_type: batch
 
 trainer:
   max_epochs: 100
-exp_name: wgangp_conv_mnist
+exp_name: wgangp/mnist_mlp

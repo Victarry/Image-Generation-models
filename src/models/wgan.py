@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import torchvision
 from src.utils import utils
-from .base import BaseModel
+from .base import BaseModel, ValidationResult
 
 
 class WGAN(BaseModel):
@@ -43,13 +43,22 @@ class WGAN(BaseModel):
         )
         return output
 
-    def on_train_epoch_end(self):
-        result_path = Path("results")
-        result_path.mkdir(parents=True, exist_ok=True)
-        z = torch.randn(64, self.hparams.latent_dim).to(self.device)
-        imgs = self.generator(z)
-        grid = self.get_grid_images(imgs)
-        torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
+    def configure_optimizers(self):
+        lrG = self.hparams.lrG
+        lrD = self.hparams.lrD
+        b1 = self.hparams.b1
+        b2 = self.hparams.b2
+
+        opt_g = torch.optim.Adam(
+            self.generator.parameters(), lr=lrG, betas=(b1, b2)
+        )
+        opt_d = torch.optim.Adam(
+            self.discriminator.parameters(), lr=lrD, betas=(b1, b2)
+        )
+        return [
+            {"optimizer": opt_g, "frequency": 1},
+            {"optimizer": opt_d, "frequency": self.hparams.n_critic},
+        ]
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch  # (N, C, H, W)
@@ -78,19 +87,8 @@ class WGAN(BaseModel):
 
             return d_loss
 
-    def configure_optimizers(self):
-        lrG = self.hparams.lrG
-        lrD = self.hparams.lrD
-        b1 = self.hparams.b1
-        b2 = self.hparams.b2
-
-        opt_g = torch.optim.Adam(
-            self.generator.parameters(), lr=lrG, betas=(b1, b2)
-        )
-        opt_d = torch.optim.Adam(
-            self.discriminator.parameters(), lr=lrD, betas=(b1, b2)
-        )
-        return [
-            {"optimizer": opt_g, "frequency": 1},
-            {"optimizer": opt_d, "frequency": self.hparams.n_critic},
-        ]
+    def validation_step(self, batch, batch_idx):
+        img, _ = batch
+        z = torch.randn(img.shape[0], self.hparams.latent_dim).to(self.device)
+        fake_imgs = self.forward(z)
+        return ValidationResult(real_image=img, fake_image=fake_imgs)

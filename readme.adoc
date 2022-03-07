@@ -144,7 +144,21 @@ ICML 2017. [https://arxiv.org/abs/1701.07875[PDF]]
 |===
 
 === WGAN-GP
+*_Improved training of wasserstein gans_* +
+Ishaan Gulrajani, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, Aaron Courville +
+NeurIPS 2017. [https://arxiv.org/abs/1704.00028[PDF]]
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
 
+^.^| Results
+| image:assets/wgangp/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/wgangp/celeba.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/wgangp/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
 
 === VAE-GAN
 
