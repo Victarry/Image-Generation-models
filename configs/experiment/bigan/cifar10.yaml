@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - override /model: bigan
+  - override /networks: conv_32
+  - override /datamodule: cifar10
+
+model:
+  loss_mode: vanilla
+trainer:
+  max_epochs: 200
+exp_name: bigan/cifar10

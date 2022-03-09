@@ -14,6 +14,12 @@ def adversarial_loss(pred, target_is_real=True, loss_mode="vanilla"):
         else:
             target = torch.zeros_like(pred)
         return F.mse_loss(pred, target)
+    elif loss_mode == "hinge":
+        if target_is_real:
+            loss = torch.maximum(1-pred, torch.ones_like(pred)).mean()
+        else:
+            loss = torch.maximum(1+pred, torch.zeros_like(pred)).mean()
+        return loss
     else:
         raise NotImplementedError
 

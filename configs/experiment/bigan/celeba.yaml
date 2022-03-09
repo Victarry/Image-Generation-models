@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+  - override /model: bigan
+  - override /networks: conv_64
+  - override /datamodule: celeba
+
+model:
+  loss_mode: hinge
+  lrG: 2e-4
+  lrD: 1e-4
+trainer:
+  max_epochs: 200
+networks:
+  encoder:
+    norm_type: batch
+  decoder:
+    norm_type: batch
+exp_name: bigan/celeba_hinge

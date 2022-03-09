@@ -6,3 +6,4 @@ b2: 0.999
 beta: 1
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}
+decoder_dist: gaussian

@@ -1,3 +1,4 @@
+from functools import partial
 from torch import nn
 import torch
 
@@ -23,6 +24,11 @@ def get_norm_layer(norm_type="batch"):
         return nn.BatchNorm2d
     elif norm_type == "instance":
         return nn.InstanceNorm2d
+    elif norm_type == "layer":
+        # groupnorm when num_groups = 1, equals to layer norm
+        # when num_groups = channel, equals to instance norm
+        # NOTE: instance norm affine is false by default and others are ture
+        return partial(nn.GroupNorm, 1)
     elif norm_type == None:
         return nn.Identity
     else:
