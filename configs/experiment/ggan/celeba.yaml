@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - override /model: gan
+  - override /networks: conv_64
+  - override /datamodule: celeba
+
+exp_name: ggan/celeba
+model:
+  loss_mode: hinge
+trainer:
+  max_epochs: 100

@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - override /model: gan
+  - override /networks: conv_mnist
+  - override /datamodule: mnist
+
+model:
+  loss_mode: hinge 
+exp_name: ggan/mnist_conv

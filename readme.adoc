@@ -200,6 +200,24 @@ ICLR 2017. [https://arxiv.org/abs/1606.00704[PDF]]
 | image:assets/bigan/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
+=== GGAN
+*_Geometric GAN_* +
+_Jae Hyun Lim, Jong Chul Ye._ +
+Arxiv 2017. [https://arxiv.org/abs/1705.02894[PDF]]
+
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
+
+^.^| Results
+| image:assets/ggan/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/ggan/celeba.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/ggan/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
+
 == Variational Autoencoders(VAEs)
 
 === VAE
