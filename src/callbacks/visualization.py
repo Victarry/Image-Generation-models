@@ -3,18 +3,12 @@ import numpy as np
 import pytorch_lightning as pl
 from pathlib import Path
 import torchvision
+import matplotlib.pyplot as plt
+import io
+from torchvision.transforms import ToTensor
 import torch
 from src.models.base import ValidationResult
-import torch.distributions as D
-
-def get_grid_images(imgs, model, nimgs=64, nrow=8):
-    if model.input_normalize:
-        grid = torchvision.utils.make_grid(
-            imgs[:nimgs], nrow=nrow, normalize=True, value_range=(-1, 1), pad_value=1
-        )
-    else:
-        grid = torchvision.utils.make_grid(imgs[:nimgs], normalize=False, nrow=nrow, pad_value=1)
-    return grid
+import PIL
 
 class SampleImagesCallback(pl.Callback):
     def __init__(self, batch_size=64, every_n_epochs=1):
@@ -36,7 +30,6 @@ class SampleImagesCallback(pl.Callback):
             fake_grid = get_grid_images(outputs.fake_image, pl_module)
             trainer.logger.experiment.add_image("images/sample", fake_grid, global_step=trainer.current_epoch)
             torchvision.utils.save_image(fake_grid, result_path / f"{trainer.current_epoch}.jpg")
-
 
 class TraverseLatentCallback(pl.Callback):
     def __init__(self, col=10, row=10) -> None:
@@ -107,5 +100,42 @@ class LatentVisualizationCallback(pl.Callback):
             sort_idx = np.argsort(labels_array)
             self.latents = []
             self.labels = []
-            self.plot_scatter("val/latent distributions", x=latents_array[:, 0][sort_idx], y=latents_array[:,1][sort_idx], 
+            img = make_scatter(x=latents_array[:, 0][sort_idx], y=latents_array[:,1][sort_idx], 
                 c=labels_array[sort_idx], xlim=(-3, 3), ylim=(-3, 3))
+            trainer.logger.experiment.add_image("val/latent distributions", img, global_step=trainer.current_epoch)
+
+
+def tensor_to_array(*tensors):
+    output = []
+    for tensor in tensors:
+        if isinstance(tensor, torch.Tensor):
+            output.append(np.array(tensor.detach().cpu().numpy()))
+        else:
+            output.append(tensor)
+    return output
+
+def make_scatter(x, y, c=None, s=None, xlim=None, ylim=None):
+    x, y, c, s = tensor_to_array(x, y, c, s)
+
+    plt.figure()
+    plt.scatter(x=x, y=y, s=s, c=c, cmap="tab10", alpha=1)
+    if xlim:
+        plt.xlim(xlim)
+    if ylim:
+        plt.ylim(ylim)
+    plt.title("Latent distribution")
+    buf = io.BytesIO()
+    plt.savefig(buf, format='jpeg')
+    plt.close()
+    buf.seek(0)
+    visual_image = ToTensor()(PIL.Image.open(buf))
+    return visual_image
+
+def get_grid_images(imgs, model, nimgs=64, nrow=8):
+    if model.input_normalize:
+        grid = torchvision.utils.make_grid(
+            imgs[:nimgs], nrow=nrow, normalize=True, value_range=(-1, 1), pad_value=1
+        )
+    else:
+        grid = torchvision.utils.make_grid(imgs[:nimgs], normalize=False, nrow=nrow, pad_value=1)
+    return grid

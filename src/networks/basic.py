@@ -39,6 +39,8 @@ def get_norm_layer_1d(norm_type="batch"):
         return nn.BatchNorm1d
     elif norm_type == "instance":
         return nn.InstanceNorm1d
+    elif norm_type == "layer":
+        return partial(nn.GroupNorm, 1)
     elif norm_type == None:
         return nn.Identity
     else:
@@ -85,7 +87,7 @@ class MLPEncoder(BaseNetwork):
                 hidden_dims[0],
                 "leaky_relu",
                 dropout=dropout,
-                norm_type=None,
+                norm_type="layer",
             ),
             *[
                 LinearAct(x, y, "leaky_relu", dropout=dropout, norm_type=norm_type)

@@ -1,0 +1,13 @@
+# @package _global_
+defaults:
+  - override /model: aae
+  - override /networks: conv_32
+  - override /datamodule: cifar10
+
+model:
+  loss_mode: vanilla
+  recon_weight: 10
+  latent_dim: 64
+trainer:
+  max_epochs: 100
+exp_name: aae/cifar10

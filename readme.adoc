@@ -238,13 +238,31 @@ ICLR 2014. [https://arxiv.org/abs/1312.6114[PDF]]
 | image:assets/vae/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
-=== BetaVAE
-
-=== FactorVAE
-
 === AAE
+*_Adversarial Autoencoders._* +
+Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, Brendan Frey. +
+arxiv 2015. [https://arxiv.org/abs/1511.05644[PDF]]
+
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
+
+^.^| Results
+| image:assets/aae/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/aae/celeba.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/aae/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
 
 === AGE
+
+== Disentangled Image Generation
+
+=== Beta-VAE
+
+=== Factor-VAE
 
 == Diffusion Models
 === DDPM

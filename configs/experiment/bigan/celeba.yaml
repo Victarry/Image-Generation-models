@@ -9,10 +9,10 @@ model:
   lrG: 2e-4
   lrD: 1e-4
 trainer:
-  max_epochs: 200
+  max_epochs: 100
 networks:
   encoder:
-    norm_type: batch
+    norm_type: null
   decoder:
     norm_type: batch
 exp_name: bigan/celeba_hinge

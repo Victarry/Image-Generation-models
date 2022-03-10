@@ -1,9 +1,12 @@
 _target_: src.models.aae.AAE
-latent_dim: 128
-lr: 0.0001
-b1: 0.9
-b2: 0.999
-optim: adam
 encoder: ${networks.encoder}
 decoder: ${networks.decoder}
 netD: ${networks.encoder}
+loss_mode: vanilla
+latent_dim: 128
+lrG: 2e-4
+lrD: 2e-4
+b1: 0.5
+b2: 0.999
+recon_weight: 1
+prior: "normal"

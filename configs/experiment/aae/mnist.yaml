@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - override /model: aae
+  - override /networks: conv_mnist
+  - override /datamodule: mnist
+
+model:
+  loss_mode: vanilla
+  latent_dim: 8
+trainer:
+  max_epochs: 50
+exp_name: aae/mnist_conv
