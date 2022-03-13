@@ -1,10 +1,11 @@
 _target_: src.models.age.AGE
+encoder: ${networks.encoder}
+decoder: ${networks.decoder}
 latent_dim: 128
 lrE: 2e-4
 lrG: 2e-4
-b1: 0.9
+b1: 0.5
 b2: 0.999
-beta: 1
-optim: adam
-encoder: ${networks.encoder}
-decoder: ${networks.decoder}
+recon_z_weight: 1
+recon_x_weight: 10
+norm_z: true

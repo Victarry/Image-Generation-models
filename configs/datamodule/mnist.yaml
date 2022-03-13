@@ -1,5 +1,5 @@
 defaults:
-  - override /networks@_global_: mnist_conv
+  - override /networks@_global_: conv_mnist
 
 _target_: src.datamodules.mnist.MNISTDataModule
 data_dir: ${data_dir}

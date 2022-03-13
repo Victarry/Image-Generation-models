@@ -1,0 +1,24 @@
+# @package _global_
+defaults:
+  - override /model: age
+  - override /networks: conv_mnist
+  - override /datamodule: mnist
+
+model:
+  latent_dim: 10
+  recon_x_weight: 10
+  recon_z_weight: 1000
+  lrG: 7e-4
+  lrE: 2e-3
+  drop_lr_epoch: 30
+trainer:
+  max_epochs: 100
+networks:
+  encoder:
+    norm_type: batch
+  decoder:
+    norm_type: batch
+datamodule:
+  batch_size: 512
+
+exp_name: age_mnist/z${model.recon_z_weight}_x${model.recon_x_weight}_lrG${model.lrG}_lrE${model.lrE}_batch${datamodule.batch_size}

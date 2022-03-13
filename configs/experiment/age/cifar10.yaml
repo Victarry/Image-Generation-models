@@ -1,0 +1,25 @@
+# @package _global_
+defaults:
+  - override /model: age
+  - override /networks: conv_32
+  - override /datamodule: cifar10
+
+model:
+  latent_dim: 128
+  recon_x_weight: 10
+  recon_z_weight: 1000
+  lrG: 2e-4
+  lrE: 2e-4
+  drop_lr_epoch: 40
+  g_updates: 3
+trainer:
+  max_epochs: 150
+networks:
+  encoder:
+    norm_type: batch
+  decoder:
+    norm_type: batch
+datamodule:
+  batch_size: 256
+
+exp_name: age_cifar10/z${model.recon_z_weight}_x${model.recon_x_weight}_lrG${model.lrG}_lrE${model.lrE}_batch${datamodule.batch_size}

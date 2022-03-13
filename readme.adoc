@@ -178,12 +178,12 @@ ICML 2016. [https://arxiv.org/abs/1512.09300[PDF]]
 | image:assets/vaegan/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
-=== BiGAN/AIL
+=== BiGAN/ALI
 `BiGAN` *_Adversarial Feature Learning_* +
 _Jeff Donahue, Philipp Krähenbühl, Trevor Darrell._ +
 ICLR 2017. [https://arxiv.org/abs/1605.09782[PDF]]
 
-`AIL` *_Adversarial Learned Inference_* +
+`ALI` *_Adversarial Learned Inference_* +
 _Vincent Dumoulin, Ishmael Belghazi, Ben Poole, Olivier Mastropietro, Alex Lamb, Martin Arjovsky, Aaron Courville_ + 
 ICLR 2017. [https://arxiv.org/abs/1606.00704[PDF]]
 
@@ -238,9 +238,13 @@ ICLR 2014. [https://arxiv.org/abs/1312.6114[PDF]]
 | image:assets/vae/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
+=== Beta-VAE
+
+=== Factor-VAE
+
 === AAE
 *_Adversarial Autoencoders._* +
-Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, Brendan Frey. +
+_Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, Brendan Frey._ +
 arxiv 2015. [https://arxiv.org/abs/1511.05644[PDF]]
 
 [cols="4*", options="header"] 
@@ -257,12 +261,22 @@ arxiv 2015. [https://arxiv.org/abs/1511.05644[PDF]]
 |===
 
 === AGE
+`AGE` *_Adversarial Generator-Encoder Networks._* +
+_Dmitry Ulyanov, Andrea Vedaldi, Victor Lempitsky._
+AAAI 2018. [https://arxiv.org/abs/1704.02304[PDF]]
 
-== Disentangled Image Generation
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
 
-=== Beta-VAE
-
-=== Factor-VAE
+^.^| Results
+| image:assets/age/mnist.png[mnist_mlp, {img-size}, {img-size}]
+| TODO image:assets/age/celeba.jpg[cleba_conv, {img-size}, {img-size}]
+| TODO image:assets/age/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
 
 == Diffusion Models
 === DDPM

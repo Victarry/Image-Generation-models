@@ -2,16 +2,10 @@
 It Takes (Only) Two: Adversarial Generator-Encoder Networks
 https://arxiv.org/abs/1704.02304
 """
-from torch.nn.parameter import Parameter
-from torch import distributions as D
-from pathlib import Path
-import numpy as np
 import hydra
 import torch
 import torch.nn.functional as F
-import torchvision
-from .base import BaseModel
-import torchmetrics
+from .base import BaseModel, ValidationResult
 
 
 class AGE(BaseModel):
@@ -25,15 +19,14 @@ class AGE(BaseModel):
         latent_dim=128,
         b1: float = 0.5,
         b2: float = 0.999,
-        input_normalize=True,
-        optim="adam",
-        eval_fid=False,
         recon_z_weight=1000,
         recon_x_weight=10,
-        **kwargs,
+        norm_z=True,
+        drop_lr_epoch=20,
+        g_updates=2, # number of decoder iterates relative to encoder
     ):
-        super().__init__()
-        self.save_hyperparameters(datamodule)
+        super().__init__(datamodule)
+        self.save_hyperparameters()
         # networks
         self.decoder = hydra.utils.instantiate(
             decoder, input_channel=latent_dim, output_channel=self.channels
@@ -42,133 +35,12 @@ class AGE(BaseModel):
             encoder, input_channel=self.channels, output_channel=latent_dim
         )
 
-        self.prior_mu = Parameter(torch.zeros(latent_dim))
-        self.prior_sigma = Parameter(torch.ones(latent_dim))
-
-        self.prior_dist = D.Normal(self.prior_mu, self.prior_sigma)
-
-    def forward(self, z=None):
-        if z == None:
-            z = torch.randn(64, self.hparams.latent_dim).to(self.device)
+    def forward(self, z):
         output = self.decoder(z)
         output = output.reshape(
             z.shape[0], self.channels, self.height, self.width
         )
         return output
-    
-    def calculate_kl(self, samples: torch.Tensor):
-        """Calcuate KL divergence between fitted gaussian distribution and standard normal distribution
-        """
-        # samples: (N, d)
-        mu = samples.mean(dim=0) # (d)
-        var = samples.var(dim=0) # (d)
-        kl_div = (mu**2+var-torch.log(var)).mean()/2
-        return kl_div
-
-    def training_step(self, batch, batch_idx, optimizer_idx):
-        imgs, labels = batch  # (N, C, H, W)
-        N = imgs.shape[0]
-
-        # sample noise
-        # NOTE: the input to decoder and output to encoder are both in sphere latent space
-        z = torch.randn(imgs.shape[0], self.hparams.latent_dim).type_as(imgs)  # (N, latent_dim)
-        norm_z = z / z.norm(dim=1, keepdim=True)
-
-        # train encoder
-        if optimizer_idx == 0:
-            # divergence between prior and encoded real samples
-            real_z = self.encoder(imgs).reshape(N, -1)  # (N, latent_dim)
-            # NOTE: mapping the latent code to sphere
-            norm_real_z = real_z/real_z.norm(dim=1, keepdim=True)
-            real_kl = self.calculate_kl(norm_real_z)
-
-            # divergence between prior and encoded generated samples
-            fake_imgs = self.decoder(norm_z).detach()
-            fake_z = self.encoder(fake_imgs).reshape(N, -1)
-            norm_fake_z = fake_z / fake_z.norm(dim=1, keepdim=True)
-            fake_kl = self.calculate_kl(norm_fake_z)
-
-            # recon_x
-            recon_imgs = self.decoder(norm_real_z)
-            recon_loss = F.mse_loss(imgs, recon_imgs)
-
-
-            self.log("train_loss/real_kl", real_kl)
-            self.log("train_loss/fake_kl", fake_kl)
-            self.log("train_loss/recon_x", recon_loss)
-
-            if self.global_step % 200 == 0:
-                # log sampled images
-                self.log_images(fake_imgs, "generated_images")
-                self.log_images(imgs, "source_images")
-                self.log_images(recon_imgs, "recon_imgs")
-                if self.hparams.latent_dim == 2:
-                    self.plot_scatter("real_distribution/sample", x=real_z[:, 0], y=real_z[:, 1], c=labels)
-                    self.plot_scatter("real_distribution/sample_norm", x=norm_real_z[:, 0], y=norm_real_z[:, 1], c=labels, xlim=(-1, 1), ylim=(-1, 1))
-
-                    self.plot_scatter("fake_distribution/sample", x=fake_z[:, 0], y=fake_z[:, 1], c=labels)
-                    self.plot_scatter("fake_distribution/sample_norm", x=norm_fake_z[:, 0], y=norm_fake_z[:, 1], c=labels, xlim=(-1, 1), ylim=(-1 ,1))
-            # encoder try to minimize real_kl and maximize fake_kl
-            return real_kl-fake_kl+self.hparams.recon_x_weight*recon_loss
-
-        # train decoder 
-        if optimizer_idx == 1:
-            fake_imgs = self.decoder(norm_z)
-            fake_z = self.encoder(fake_imgs).reshape(N, -1)
-            norm_fake_z = fake_z / fake_z.norm(dim=1, keepdim=True)
-            fake_kl = self.calculate_kl(norm_fake_z)
-
-            # Why not also optimize recon_x, I thought it's to reduce computation.
-            recon_loss = F.mse_loss(norm_fake_z, norm_z)
-
-            self.log("train_loss/recon_z", recon_loss)
-            # decoder try to minimize fake_kl
-            return fake_kl + self.hparams.recon_z_weight*recon_loss
-
-    def on_train_epoch_end(self):
-        result_path = Path("results")
-        result_path.mkdir(parents=True, exist_ok=True)
-        if hasattr(self, "z"):
-            z = self.z
-        else:
-            self.z = z = torch.randn(64, self.hparams.latent_dim).to(self.device)
-        imgs = self.decoder(z)
-        grid = self.get_grid_images(imgs)
-        torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
-
-    def on_validation_epoch_start(self) -> None:
-        if self.hparams.eval_fid:
-            self.fid = torchmetrics.FID().to(self.device)
-        if self.hparams.latent_dim == 2:
-            self.latents = []
-            self.labels = []
-
-    def validation_step(self, batch, batch_idx):
-        imgs, label = batch
-        if self.hparams.eval_fid:
-            self.fid.update(self.image_float2int(imgs), real=True)
-            fake_imgs = self.forward()
-            self.fid.update(self.image_float2int(fake_imgs), real=False)
-
-        if self.hparams.latent_dim == 2:
-            posterior_latent = self.encoder(imgs)
-            self.latents.append(posterior_latent)
-            self.labels.append(label)
-
-
-    def on_validation_epoch_end(self):
-        if self.hparams.eval_fid:
-            self.log("metrics/fid", self.fid.compute())
-
-        if self.hparams.latent_dim == 2:
-            # show posterior
-            latents_array = torch.cat(self.latents).cpu().numpy()
-            labels_array = torch.cat(self.labels).cpu().numpy()
-            sort_idx = np.argsort(labels_array)
-            self.plot_scatter("Latent Distribution", x=latents_array[:, 0][sort_idx], y=latents_array[:,1][sort_idx], 
-                                c=labels_array[sort_idx], xlim=(-3, 3), ylim=(-3, 3))
-            self.latents = []
-            self.labels = []
 
     def configure_optimizers(self):
         lrG = self.hparams.lrG
@@ -176,18 +48,89 @@ class AGE(BaseModel):
         b1 = self.hparams.b1
         b2 = self.hparams.b2
 
-        if self.hparams.optim == "adam":
-            opt_e = torch.optim.Adam(
-                self.encoder.parameters(), lr=lrE, betas=(b1, b2)
-            )
-            opt_g = torch.optim.Adam(
-                self.decoder.parameters(), lr=lrG, betas=(b1, b2)
-            )
-        elif self.hparams.optim == "sgd":
-            opt_e = torch.optim.SGD(self.encoder.parameters(), lr=lrE)
-            opt_g = torch.optim.SGD(self.decoder.parameters(), lr=lrG)
-        return [opt_e, opt_g]
-        # return [
-        #     {"optimizer": opt_e, "frequency": 1},
-        #     {"optimizer": opt_g, "frequency": 4},
-        # ]
+        lambda_func = lambda epoch: 0.5 ** (epoch // self.hparams.drop_lr_epoch)
+        opt_e = torch.optim.Adam(self.encoder.parameters(), lr=lrE, betas=(b1, b2))
+        e_scheduler = torch.optim.lr_scheduler.LambdaLR(opt_e, lr_lambda=lambda_func)
+
+        opt_g = torch.optim.Adam(self.decoder.parameters(), lr=lrG, betas=(b1, b2))
+        g_scheduler = torch.optim.lr_scheduler.LambdaLR(opt_g, lr_lambda=lambda_func)
+        return [
+            {"optimizer": opt_e, "frequency": 1, "scheduler": e_scheduler},
+            {"optimizer": opt_g, "frequency": self.hparams.g_updates, "scheduler": g_scheduler}
+        ]
+
+    def calculate_kl(self, samples: torch.Tensor, return_state=False):
+        """Calcuate KL divergence between fitted gaussian distribution and standard normal distribution
+        """
+        mu = samples.mean(dim=0) # (d)
+        var = samples.var(dim=0) # (d)
+        kl_div = (mu**2+var-torch.log(var)).mean()/2
+        if return_state:
+            return kl_div, mu.mean(), var.mean()
+        else:
+            return kl_div
+    
+    def encode(self, imgs):
+        N = imgs.shape[0]
+        z = self.encoder(imgs).reshape(N, -1)
+        if self.hparams.norm_z:
+            z = F.normalize(z)
+        return z
+
+    def training_step(self, batch, batch_idx, optimizer_idx):
+        imgs, labels = batch  # (N, C, H, W)
+        N = imgs.shape[0]
+
+        # sample noise
+        # NOTE: the input to decoder and output to encoder are both in sphere latent space
+        # This is useful to prevent kl divergence from explosion
+        z = torch.randn(imgs.shape[0], self.hparams.latent_dim).type_as(imgs)  # (N, latent_dim)
+        if self.hparams.norm_z:
+            z = F.normalize(z)
+
+        # train encoder
+        if optimizer_idx == 0:
+            # divergence between prior and encoded real samples
+            real_z = self.encode(imgs)  # (N, latent_dim)
+            real_kl, real_mu, real_var = self.calculate_kl(real_z, return_state=True)
+
+            # divergence between prior and encoded generated samples
+            fake_imgs = self.decoder(z)
+            fake_z = self.encode(fake_imgs)
+            fake_kl, fake_mu, fake_var = self.calculate_kl(fake_z, return_state=True)
+
+            # recon_x, also prevent encoder mode collapse
+            recon_imgs = self.decoder(real_z)
+            recon_loss = F.l1_loss(imgs, recon_imgs, reduction="mean")
+
+            self.log("train_loss/real_kl", real_kl)
+            self.log("train_loss/fake_kl", fake_kl)
+            self.log("train_loss/recon_x", recon_loss)
+            self.log("train_log/real_mu", real_mu)
+            self.log("train_log/real_var", real_var)
+            self.log("train_log/fake_mu", fake_mu)
+            self.log("train_log/fake_var", fake_var)
+            return real_kl-fake_kl+self.hparams.recon_x_weight*recon_loss
+
+        # train decoder 
+        if optimizer_idx == 1:
+            fake_imgs = self.decoder(z)
+            fake_z = self.encode(fake_imgs)
+            fake_kl = self.calculate_kl(fake_z)
+
+            recon_loss = -F.cosine_similarity(fake_z, z).mean()
+
+            self.log("train_loss/recon_z", recon_loss)
+            # decoder try to minimize fake_kl
+            return fake_kl + self.hparams.recon_z_weight*recon_loss
+
+    def validation_step(self, batch, batch_idx):
+        img, _ = batch
+        z = torch.randn(img.shape[0], self.hparams.latent_dim).to(self.device)
+        if self.hparams.norm_z:
+            z = F.normalize(z) 
+
+        fake_img = self.forward(z)
+        encode_z = self.encode(img)
+        recon_img = self.decoder(encode_z)
+        return ValidationResult(real_image=img, fake_image=fake_img, recon_image=recon_img, encode_latent=encode_z)
