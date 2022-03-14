@@ -19,8 +19,10 @@ class AGE(BaseModel):
         latent_dim=128,
         b1: float = 0.5,
         b2: float = 0.999,
-        recon_z_weight=1000,
-        recon_x_weight=10,
+        e_recon_z_weight=1000,
+        e_recon_x_weight=0,
+        g_recon_z_weight=0,
+        g_recon_x_weight=10,
         norm_z=True,
         drop_lr_epoch=20,
         g_updates=2, # number of decoder iterates relative to encoder
@@ -62,6 +64,7 @@ class AGE(BaseModel):
     def calculate_kl(self, samples: torch.Tensor, return_state=False):
         """Calcuate KL divergence between fitted gaussian distribution and standard normal distribution
         """
+        assert samples.dim() == 2
         mu = samples.mean(dim=0) # (d)
         var = samples.var(dim=0) # (d)
         kl_div = (mu**2+var-torch.log(var)).mean()/2
@@ -69,7 +72,7 @@ class AGE(BaseModel):
             return kl_div, mu.mean(), var.mean()
         else:
             return kl_div
-    
+
     def encode(self, imgs):
         N = imgs.shape[0]
         z = self.encoder(imgs).reshape(N, -1)
@@ -99,18 +102,27 @@ class AGE(BaseModel):
             fake_z = self.encode(fake_imgs)
             fake_kl, fake_mu, fake_var = self.calculate_kl(fake_z, return_state=True)
 
-            # recon_x, also prevent encoder mode collapse
-            recon_imgs = self.decoder(real_z)
-            recon_loss = F.l1_loss(imgs, recon_imgs, reduction="mean")
+            recon_x_loss = 0
+            if self.hparams.e_recon_x_weight > 0:
+                # recon_x, also prevent encoder mode collapse
+                recon_imgs = self.decoder(real_z)
+                recon_x_loss = F.mse_loss(imgs, recon_imgs, reduction="mean")
+                self.log("train_loss/recon_x", recon_x_loss)
+
+            recon_z_loss = 0
+            if self.hparams.e_recon_z_weight > 0:
+                recon_z_loss = 1-F.cosine_similarity(fake_z, z).mean()
+
+            total_e_loss = real_kl-fake_kl+self.hparams.e_recon_x_weight*recon_x_loss+self.hparams.e_recon_z_weight*recon_z_loss
 
             self.log("train_loss/real_kl", real_kl)
             self.log("train_loss/fake_kl", fake_kl)
-            self.log("train_loss/recon_x", recon_loss)
+            self.log("train_loss/total_e_loss", total_e_loss)
             self.log("train_log/real_mu", real_mu)
             self.log("train_log/real_var", real_var)
             self.log("train_log/fake_mu", fake_mu)
             self.log("train_log/fake_var", fake_var)
-            return real_kl-fake_kl+self.hparams.recon_x_weight*recon_loss
+            return total_e_loss
 
         # train decoder 
         if optimizer_idx == 1:
@@ -118,11 +130,22 @@ class AGE(BaseModel):
             fake_z = self.encode(fake_imgs)
             fake_kl = self.calculate_kl(fake_z)
 
-            recon_loss = -F.cosine_similarity(fake_z, z).mean()
+            # recon_loss = 1-F.cosine_similarity(fake_z, z).mean()
+            recon_z_loss = 0
+            if self.hparams.g_recon_z_weight > 0:
+                recon_z_loss = F.mse_loss(fake_z, z)
+            
+            recon_x_loss = 0
+            if self.hparams.g_recon_x_weight > 0:
+                real_z = self.encode(imgs)
+                recon_x = self.decoder(real_z)
+                recon_x_loss = F.mse_loss(imgs, recon_x)
 
-            self.log("train_loss/recon_z", recon_loss)
-            # decoder try to minimize fake_kl
-            return fake_kl + self.hparams.recon_z_weight*recon_loss
+            total_g_loss = fake_kl + self.hparams.g_recon_z_weight*recon_z_loss + self.hparams.g_recon_x_weight*recon_x_loss
+
+            self.log("train_loss/g_recon_z", recon_z_loss)
+            self.log("train_loss/g_loss", total_g_loss)
+            return total_g_loss
 
     def validation_step(self, batch, batch_idx):
         img, _ = batch

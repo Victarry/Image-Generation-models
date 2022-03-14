@@ -6,20 +6,23 @@ defaults:
 
 model:
   latent_dim: 64
-  recon_x_weight: 0
-  recon_z_weight: 0
+  e_recon_z_weight: 0
+  e_recon_x_weight: 10
+  g_recon_z_weight: 1000
+  g_recon_x_weight: 10
   lrG: 1e-3
   lrE: 1e-3
-  drop_lr_epoch: 5
+  drop_lr_epoch: 20
   g_updates: 3
 trainer:
   max_epochs: 100
+  check_val_every_n_epoch: 5
 networks:
   encoder:
     norm_type: batch
   decoder:
     norm_type: batch
 datamodule:
-  batch_size: 256
+  batch_size: 64
 
-exp_name: age_celeba_debug/z${model.recon_z_weight}_x${model.recon_x_weight}_lrG${model.lrG}_lrE${model.lrE}_batch${datamodule.batch_size}
+exp_name: age_celeba/z${model.recon_z_weight}_x${model.recon_x_weight}_lrG${model.lrG}_lrE${model.lrE}_batch${datamodule.batch_size}

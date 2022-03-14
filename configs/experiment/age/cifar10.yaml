@@ -6,11 +6,13 @@ defaults:
 
 model:
   latent_dim: 128
-  recon_x_weight: 10
-  recon_z_weight: 1000
-  lrG: 2e-4
-  lrE: 2e-4
-  drop_lr_epoch: 40
+  e_recon_z_weight: 0
+  e_recon_x_weight: 10
+  g_recon_z_weight: 1000
+  g_recon_x_weight: 10
+  lrG: 1e-3
+  lrE: 1e-3
+  drop_lr_epoch: 20
   g_updates: 3
 trainer:
   max_epochs: 150

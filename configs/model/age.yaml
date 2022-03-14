@@ -6,6 +6,8 @@ lrE: 2e-4
 lrG: 2e-4
 b1: 0.5
 b2: 0.999
-recon_z_weight: 1
-recon_x_weight: 10
+e_recon_z_weight: 0
+e_recon_x_weight: 1
+g_recon_z_weight: 1
+g_recon_x_weight: 0
 norm_z: true

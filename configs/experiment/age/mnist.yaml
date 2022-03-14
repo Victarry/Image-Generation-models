@@ -6,8 +6,10 @@ defaults:
 
 model:
   latent_dim: 10
-  recon_x_weight: 10
-  recon_z_weight: 1000
+  e_recon_x_weight: 10
+  e_recon_z_weight: 0
+  g_recon_x_weight: 0
+  g_recon_z_weight: 1000
   lrG: 7e-4
   lrE: 2e-3
   drop_lr_epoch: 30
