@@ -263,6 +263,21 @@ ICLR 2017. [https://openreview.net/forum?id=Sy2fzU9gl[PDF]]
 Hyunjik Kim, Andriy Mnih. +
 NeurIPS 2017. [https://arxiv.org/abs/1802.05983[PDF]]
 
+[cols="3*", options="header"] 
+|===
+^| Dataset
+^| CelebA
+^| dsprites
+
+^.^| Sample
+| image:assets/factor_vae/fvae_sample_celeba.jpg[celeba, {img-size}, {img-size}]
+| image:assets/factor_vae/fvae_dsprites_sample.jpg[dsprites, {img-size}, {img-size}]
+
+^.^| Latent Interpolation
+| image:assets/factor_vae/fvae_celeba_traverse.jpg[celeba, {img-size}, {img-size}]
+| image:assets/factor_vae/fvae_dsprites_traverse.jpg[dsprites, {img-size}, {img-size}]
+|===
+
 === AAE
 *_Adversarial Autoencoders._* +
 _Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, Brendan Frey._ +
