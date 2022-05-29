@@ -37,3 +37,4 @@ scikit-learn    # used in some callbacks
 seaborn         # used in some callbacks
 jupyterlab      # better jupyter notebooks
 pudb            # debugger
+GPUtil          # get info about GPUs

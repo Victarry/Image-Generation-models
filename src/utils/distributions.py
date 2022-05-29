@@ -20,6 +20,9 @@ class GaussianDistribution(nn.Module):
         p_x = dist.log_prob(target).sum(dim=[1,2,3])
         return p_x
 
+    def sample(self, pred):
+        return pred
+
 class BernoulliDistribution(nn.Module):
     def __init__(self):
         super().__init__()
@@ -27,3 +30,6 @@ class BernoulliDistribution(nn.Module):
     def prob(self, pred, target):
         prob = -F.binary_cross_entropy(pred, target, reduction='none').sum([1, 2, 3])
         return prob
+
+    def sample(self, pred):
+        return pred

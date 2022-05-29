@@ -239,8 +239,29 @@ ICLR 2014. [https://arxiv.org/abs/1312.6114[PDF]]
 |===
 
 === Beta-VAE
+*_beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework_* +
+Irina Higgins, Loic Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew Botvinick, Shakir Mohamed, Alexander Lerchner. +
+ICLR 2017. [https://openreview.net/forum?id=Sy2fzU9gl[PDF]]
+
+[cols="3*", options="header"] 
+|===
+^| Dataset
+^| CelebA
+^| dsprites
+
+^.^| Sample
+| image:assets/beta_vae/celeba_sample.jpg[celeba, {img-size}, {img-size}]
+| image:assets/beta_vae/dsprites_sample.jpg[dsprites, {img-size}, {img-size}]
+
+^.^| Latent Interpolation
+| image:assets/beta_vae/celeba_traverse.jpg[celeba, {img-size}, {img-size}]
+| image:assets/beta_vae/dsprites_traverse.jpg[dsprites, {img-size}, {img-size}]
+|===
 
 === Factor-VAE
+*_Disentangling by Factorising_* +
+Hyunjik Kim, Andriy Mnih. +
+NeurIPS 2017. [https://arxiv.org/abs/1802.05983[PDF]]
 
 === AAE
 *_Adversarial Autoencoders._* +
@@ -273,7 +294,7 @@ AAAI 2018. [https://arxiv.org/abs/1704.02304[PDF]]
 ^| CIFAR10
 
 ^.^| Results
-| image:assets/age/mnist.png[mnist_mlp, {img-size}, {img-size}]
+| image:assets/age/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
 | TODO image:assets/age/celeba.jpg[cleba_conv, {img-size}, {img-size}]
 | TODO image:assets/age/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===

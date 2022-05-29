@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+  - override /model: vae
+  - override /networks: conv_64
+  - override /datamodule: celeba
+
+model:
+  beta: 64
+  latent_dim: 10
+  decoder_dist: gaussian
+networks:
+  encoder:
+    norm_type: null
+  decoder:
+    norm_type: null
+trainer:
+  max_epochs: 100
+exp_name: beta_vae/celeba

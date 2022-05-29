@@ -32,6 +32,7 @@ class VAE(BaseModel):
     def forward(self, z):
         """Generate images given latent code."""
         output = self.decoder(z)
+        output = self.decoder_dist.sample(output)
         output = output.reshape(output.shape[0], self.channels, self.height, self.width)
         return output
 
