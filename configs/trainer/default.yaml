@@ -5,6 +5,5 @@ gpus: 1
 
 max_epochs: 20
 
-weights_summary: null
-progress_bar_refresh_rate: 5
+enable_model_summary: False
 resume_from_checkpoint: null

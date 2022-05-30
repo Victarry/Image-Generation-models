@@ -222,7 +222,7 @@ Arxiv 2017. [https://arxiv.org/abs/1705.02894[PDF]]
 
 === VAE
 *_Auto-Encoding Variational Bayes._* +
-Diederik P.Kingma, Max Welling. +
+_Diederik P.Kingma, Max Welling._ +
 ICLR 2014. [https://arxiv.org/abs/1312.6114[PDF]]
 
 [cols="4*", options="header"] 
@@ -236,6 +236,22 @@ ICLR 2014. [https://arxiv.org/abs/1312.6114[PDF]]
 | image:assets/vae/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
 | image:assets/vae/celeba.jpg[cleba_conv, {img-size}, {img-size}]
 | image:assets/vae/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
+
+=== cVAE
+*_Learning Structured Output Representation using Deep Conditional Generative Models_* +
+_Kihyuk Sohn, Honglak Lee, Xinchen Yan._ +
+NeurIPS 2015. [https://papers.nips.cc/paper/2015/hash/8d55a249e6baa5c06772297520da2051-Abstract.html[PDF]]
+
+[cols="3*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CIFAR10
+
+^.^| Results
+| image:assets/cvae/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/cvae/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
 === Beta-VAE

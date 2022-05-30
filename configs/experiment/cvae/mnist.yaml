@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - override /model: cvae
+  - override /networks: conv_mnist
+  - override /datamodule: mnist
+
+exp_name: cvae/mnist
+trainer:
+  max_epochs: 100

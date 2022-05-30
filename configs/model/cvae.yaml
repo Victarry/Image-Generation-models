@@ -1,0 +1,13 @@
+defaults:
+    - override /callbacks@_global_: ar_models
+_target_: src.models.cvae.cVAE
+latent_dim: 128
+lr: 1e-4
+b1: 0.9
+b2: 0.999
+beta: 1
+encoder: ${networks.encoder}
+decoder: ${networks.decoder}
+decoder_dist: gaussian
+n_classes: ${datamodule.n_classes}
+encode_label: True

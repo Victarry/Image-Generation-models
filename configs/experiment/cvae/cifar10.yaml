@@ -1,0 +1,8 @@
+# @package _global_
+defaults:
+  - override /model: cvae
+  - override /datamodule: cifar10
+
+exp_name: cvae/cifar10
+trainer:
+  max_epochs: 100

@@ -1,3 +1,8 @@
+defaults:
+    - override /callbacks@_global_: ar_models
+
 _target_: src.models.pixelcnn.PixelCNN
 hidden_dim: 64
 lr: 1e-3
+n_classes: ${datamodule.n_classes}
+class_condition: False
