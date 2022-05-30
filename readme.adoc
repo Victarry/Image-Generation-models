@@ -382,15 +382,14 @@ NeruIPS 2017. [https://arxiv.org/abs/1711.00937[PDF]]
 _Aaron van den Oord, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt, Alex Graves, Koray Kavukcuoglu_
 NeruIPS 2016. [https://arxiv.org/abs/1606.05328[PDF]]
 
-[cols="2*", options="header"] 
+[cols="3*", options="header"] 
 |===
 ^| Dataset
-^| MNIST
-
 ^.^| Samples
-| image:assets/pixelcnn/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
-
 ^.^| Class Condition Samples
+
+^.^| MNIST
+| image:assets/pixelcnn/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
 | image:assets/pixelcnn/mnist_cond.jpg[mnist_mlp, {img-size}, {img-size}]
 |===
 
