@@ -4,13 +4,12 @@ discrete_dim: 1
 discrete_value: 10
 continuous_dim: 2
 noise_dim: 62
-encoder_dim: 1024
+encode_dim: 1024
 lambda_I: 1
 lrG: 0.001
 lrD: 0.0002
 lrQ: 0.0002
 b1: 0.5
 b2: 0.999
-optim: adam
 netG: ${networks.decoder}
 netD: ${networks.encoder}

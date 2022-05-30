@@ -6,7 +6,7 @@ defaults:
 
 model:
   loss_mode: lsgan
-exp_name: info_gan/baseline
+exp_name: info_gan/mnist
 
 trainer:
   max_epochs: 100

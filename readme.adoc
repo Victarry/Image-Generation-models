@@ -218,6 +218,27 @@ Arxiv 2017. [https://arxiv.org/abs/1705.02894[PDF]]
 | image:assets/ggan/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
+=== InfoGAN
+*_InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets_* +
+_Xi Chen, Yan Duan, Rein Houthooft, John Schulman, Ilya Sutskever, Pieter Abbeel_ +
+NeruIPS 2016. [https://arxiv.org/abs/1606.03657[PDF]]
+
+[cols="5*", options="header"] 
+|===
+^| Manipulated Latent
+^| Random samples
+^| Discrete Latent (class label)
+^| Continuous Latent-1 (rotation)
+^| Continuous Latent-2 (thickness)
+
+^.^| Results
+| image:assets/infogan/random.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/infogan/class.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/infogan/rotation.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/infogan/thickness.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
+
+
 == Variational Autoencoders(VAEs)
 
 === VAE
