@@ -1,0 +1,13 @@
+_target_: src.models.factor_vae.FactorVAE
+encoder: ${networks.encoder}
+decoder: ${networks.decoder}
+loss_mode: lsgan
+latent_dim: 10
+lr: 2e-4
+lrD: 1e-4
+adv_weight: 4
+ae_b1: 0.9
+ae_b2: 0.999
+adv_b1: 0.5
+adv_b2: 0.9
+decoder_dist: gaussian
