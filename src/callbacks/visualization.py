@@ -27,9 +27,10 @@ class SampleImagesCallback(pl.Callback):
                 recon_grid = get_grid_images(outputs.recon_image, pl_module)
                 trainer.logger.experiment.add_image("images/recon", recon_grid, global_step=trainer.current_epoch)
 
-            fake_grid = get_grid_images(outputs.fake_image, pl_module)
-            trainer.logger.experiment.add_image("images/sample", fake_grid, global_step=trainer.current_epoch)
-            torchvision.utils.save_image(fake_grid, result_path / f"{trainer.current_epoch}.jpg")
+            if outputs.fake_image is not None:
+                fake_grid = get_grid_images(outputs.fake_image, pl_module)
+                trainer.logger.experiment.add_image("images/sample", fake_grid, global_step=trainer.current_epoch)
+                torchvision.utils.save_image(fake_grid, result_path / f"{trainer.current_epoch}.jpg")
 
 class TraverseLatentCallback(pl.Callback):
     def __init__(self, col=10, row=10) -> None:

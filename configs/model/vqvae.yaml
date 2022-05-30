@@ -1,3 +1,5 @@
+defaults:
+    - override /callbacks@_global_: ar_models
 _target_: src.models.vqvae.VQVAE
 latent_dim: 64
 lr: 0.001 # a proper learning rate will converge faster

@@ -1,23 +1,15 @@
-from logging.config import valid_ident
 import hydra
-from numpy.core.fromnumeric import reshape
 import pytorch_lightning as pl
-from pytorch_lightning.core.mixins import hparams_mixin
-import torchvision
 import torch
 import torch.nn.functional as F
-from src.utils import utils
 import itertools
-from pathlib import Path
 from omegaconf import OmegaConf
-from .base import BaseModel
+from .base import BaseModel, ValidationResult
 from torch import nn
 
 # TODO:
 # 1. sampling implementation
 # 2. dive into the influence of num_embeddings and latent_dim
-
-
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, latent_dim, commitment_weight) -> None:
         super().__init__()
@@ -77,16 +69,14 @@ class VQVAE(BaseModel):
         )
         self.vector_quntizer = VectorQuantizer(num_embeddings, latent_dim, beta)
 
-        self.latent_w = self.hparams.width // 4
-        self.latent_h = self.hparams.height // 4
+        self.latent_w = self.width // 4
+        self.latent_h = self.height // 4
         self.latent_size = self.latent_h * self.latent_w
 
     def forward(self, imgs):
         """
         Directly sample from embeddings will not produce meaningful images.
         """
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
         z = self.encoder(imgs)
         quant_z, _, _ = self.vector_quntizer(z)
         output = self.decoder(quant_z)
@@ -98,23 +88,8 @@ class VQVAE(BaseModel):
         )
         return output
 
-    def on_train_epoch_end(self):
-        result_path = Path("results")
-        result_path.mkdir(parents=True, exist_ok=True)
-        if hasattr(self, "val_imgs"):
-            val_imgs = self.val_imgs
-        else:
-            val_imgs = self.val_imgs = next(
-                iter(self.trainer.datamodule.test_dataloader())
-            )[0].to(self.device)
-        imgs = self.forward(val_imgs)
-        grid = self.get_grid_images(imgs)
-        torchvision.utils.save_image(grid, result_path / f"{self.current_epoch}.jpg")
-
     def training_step(self, batch, batch_idx):
         imgs, _ = batch
-        if self.hparams.input_normalize:
-            imgs = imgs * 2 - 1
 
         ## Encoding
         encoder_z = self.encoder(imgs)  # (N, latent_dim, latent_w, latent_h)
@@ -128,7 +103,7 @@ class VQVAE(BaseModel):
         decoder_z = encoder_z + (quant_z - encoder_z).detach()
         fake_imgs = self.decoder(decoder_z)
         fake_imgs = fake_imgs.reshape(
-            -1, self.hparams.channels, self.hparams.height, self.hparams.width
+            -1, self.channels, self.height, self.width
         )
         recon_loss = F.mse_loss(fake_imgs, imgs)
 
@@ -138,10 +113,6 @@ class VQVAE(BaseModel):
         self.log("train_loss/recon_loss", recon_loss)
         self.log("train_loss/commit_loss", commit_loss)
 
-        # log sampled images
-        if self.global_step % 50 == 0:
-            self.log_images(imgs, "recon/source_image")
-            self.log_images(fake_imgs, "recon/output_image")
 
         return total_loss
 
@@ -160,3 +131,9 @@ class VQVAE(BaseModel):
             betas=(b1, b2),
         )
         return opt
+
+    def validation_step(self, batch, batch_idx):
+        imgs, labels = batch
+        recon_imgs = self.forward(imgs)
+        self.log("val/recon_loss", F.mse_loss(imgs, recon_imgs))
+        return ValidationResult(real_image=imgs, recon_image=recon_imgs)

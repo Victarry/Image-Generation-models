@@ -2,8 +2,8 @@
 defaults:
   - override /model: vqvae
   - override /networks: vqvae
-  - override /datamodule: mnist
+  - override /datamodule: celeba
 
 trainer:
-  max_epochs: 20
-exp_name: vqvae_conv_mnist
+  max_epochs: 100
+exp_name: vqvae/celeba

@@ -330,6 +330,30 @@ AAAI 2018. [https://arxiv.org/abs/1704.02304[PDF]]
 | TODO image:assets/age/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
 |===
 
+=== VQ-VAE
+*_Neural Discrete Representation Learning._* +
+_Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu_ +
+NeruIPS 2017. [https://arxiv.org/abs/1711.00937[PDF]]
+
+
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
+
+^.^| Ground truth
+| image:assets/vqvae/mnist_real.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/vqvae/celeba_real.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/vqvae/cifar10_real.jpg[cifar10_conv, {img-size}, {img-size}]
+
+^.^| Reconstruction
+| image:assets/vqvae/mnist_recon.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/vqvae/celeba_recon.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/vqvae/cifar10_recon.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
+
 == Augoregressive Models
 
 === PixelCNN

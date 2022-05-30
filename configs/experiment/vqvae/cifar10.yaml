@@ -6,4 +6,4 @@ defaults:
 
 trainer:
   max_epochs: 100
-exp_name: vqvae_conv_cifar10
+exp_name: vqvae/cifar10
