@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /model: pixelcnn
+  - override /datamodule: mnist
+
+exp_name: pixelcnn/mnist
+
+datamodule:
+  transforms:
+    grayscale: True
+    normalize: False
+trainer:
+  max_epochs: 100
+  check_val_every_n_epoch: 10

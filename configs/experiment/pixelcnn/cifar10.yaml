@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /model: pixelcnn
+  - override /datamodule: cifar10
+
+exp_name: pixelcnn/cifar10
+
+datamodule:
+  transforms:
+    grayscale: False
+    normalize: False
+trainer:
+  max_epochs: 100
+  check_val_every_n_epoch: 10

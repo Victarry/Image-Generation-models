@@ -8,6 +8,7 @@ height: 64
 channels: 3
 batch_size: 128
 num_workers: 8
+n_classes: None
 transforms:
   convert: True
   normalize: True

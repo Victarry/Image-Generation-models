@@ -3,3 +3,4 @@ defaults:
   - latent_visual
   - sample
   - traverse_latent
+  - tqdm

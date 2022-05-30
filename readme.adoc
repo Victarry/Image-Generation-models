@@ -298,7 +298,7 @@ arxiv 2015. [https://arxiv.org/abs/1511.05644[PDF]]
 
 === AGE
 `AGE` *_Adversarial Generator-Encoder Networks._* +
-_Dmitry Ulyanov, Andrea Vedaldi, Victor Lempitsky._
+_Dmitry Ulyanov, Andrea Vedaldi, Victor Lempitsky._ +
 AAAI 2018. [https://arxiv.org/abs/1704.02304[PDF]]
 
 [cols="4*", options="header"] 
@@ -312,6 +312,25 @@ AAAI 2018. [https://arxiv.org/abs/1704.02304[PDF]]
 | image:assets/age/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
 | TODO image:assets/age/celeba.jpg[cleba_conv, {img-size}, {img-size}]
 | TODO image:assets/age/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===
+
+== Augoregressive Models
+
+=== PixelCNN
+*_Conditional Image Generation with PixelCNN Decoders_* +
+_Aaron van den Oord, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt, Alex Graves, Koray Kavukcuoglu_
+NeruIPS 2016. [https://arxiv.org/abs/1606.05328[PDF]]
+
+[cols="2*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+
+^.^| Samples
+| image:assets/pixelcnn/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+
+^.^| Class Condition Samples
+| image:assets/pixelcnn/mnist_cond.jpg[mnist_mlp, {img-size}, {img-size}]
 |===
 
 == Diffusion Models

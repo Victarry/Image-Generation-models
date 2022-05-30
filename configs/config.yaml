@@ -2,6 +2,7 @@
 
 # specify here default training configuration
 defaults:
+  - callbacks: default
   - trainer: default
   - model: null
   - networks: null
@@ -10,7 +11,6 @@ defaults:
   - hydra: default
   - _self_
   - experiment: null
-  - callbacks: default
 
   # enable color logging
   - override hydra/hydra_logging: colorlog

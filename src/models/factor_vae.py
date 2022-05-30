@@ -51,6 +51,7 @@ class FactorVAE(BaseModel):
     def forward(self, z):
         output = self.decoder(z)
         output = output.reshape(output.shape[0], self.channels, self.height, self.width)
+        output = self.decoder_dist.sample(output)
         return output
 
     def configure_optimizers(self):

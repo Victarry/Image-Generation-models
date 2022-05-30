@@ -28,8 +28,9 @@ class BernoulliDistribution(nn.Module):
         super().__init__()
     
     def prob(self, pred, target):
+        # pred: probabilities between 0 and 1
         prob = -F.binary_cross_entropy(pred, target, reduction='none').sum([1, 2, 3])
         return prob
 
     def sample(self, pred):
-        return pred
+        return torch.bernoulli(pred)

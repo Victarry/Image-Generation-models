@@ -8,6 +8,7 @@ width: 32
 height: 32
 batch_size: 128
 num_workers: 8
+n_classes: 10
 transforms:
   convert: True
   normalize: True

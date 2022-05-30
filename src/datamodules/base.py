@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 
 class BaseDatamodule(pl.LightningDataModule):
     def __init__(self, width, height, channels, batch_size, num_workers):
-        super().__init__(dims=(width, height, channels))
+        super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
     
@@ -36,6 +36,8 @@ def get_interpolation_method(method):
 
 def get_transform(config):
     transform_list = []
+    if config is None:
+        return transforms.ToTensor()
     # if 'grayscale' in config:
     #     transform_list.append(transforms.Grayscale(1))
     if 'resize' in config:

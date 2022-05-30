@@ -11,6 +11,7 @@ class CIFAR10DataModule(BaseDatamodule):
         batch_size: int = 64,
         num_workers: int = 8,
         transforms=None,
+        **kargs
     ):
         super().__init__(width, height, channels, batch_size, num_workers)
         self.data_dir = data_dir
