@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /model: ddpm
+  - override /datamodule: cifar10
+
+exp_name: ddpm/cifar10
+
+trainer:
+  max_epochs: 100
+  check_val_every_n_epoch: 10
+
+model:
+  dim_mults: [1, 2, 4]
+  timesteps: 1000

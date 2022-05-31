@@ -379,7 +379,7 @@ NeruIPS 2017. [https://arxiv.org/abs/1711.00937[PDF]]
 
 === PixelCNN
 *_Conditional Image Generation with PixelCNN Decoders_* +
-_Aaron van den Oord, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt, Alex Graves, Koray Kavukcuoglu_
+_Aaron van den Oord, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt, Alex Graves, Koray Kavukcuoglu_ +
 NeruIPS 2016. [https://arxiv.org/abs/1606.05328[PDF]]
 
 [cols="3*", options="header"] 
@@ -395,3 +395,19 @@ NeruIPS 2016. [https://arxiv.org/abs/1606.05328[PDF]]
 
 == Diffusion Models
 === DDPM
+*_Denoising Diffusion Probabilistic Models_* +
+_Jonathan Ho, Ajay Jain, Pieter Abbeel_ +
+NeurIPS 2020. [https://arxiv.org/abs/2006.11239[PDF]]
+
+[cols="4*", options="header"] 
+|===
+^| Dataset
+^| MNIST
+^| CelebA
+^| CIFAR10
+
+^.^| Results
+| image:assets/ddpm/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/ddpm/celeba.jpg[cleba_conv, {img-size}, {img-size}]
+| image:assets/ddpm/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+|===

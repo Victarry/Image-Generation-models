@@ -38,3 +38,4 @@ seaborn         # used in some callbacks
 jupyterlab      # better jupyter notebooks
 pudb            # debugger
 GPUtil          # get info about GPUs
+einops          # Framework to use einstein-like notation

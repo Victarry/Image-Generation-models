@@ -1,3 +1,5 @@
+defaults:
+    - override /callbacks@_global_: ar_models
 _target_: src.models.ddpm.DDPM
 hidden_dim: 64
 lr: 0.0001

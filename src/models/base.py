@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pytorch_lightning import LightningModule
 from src.utils.utils import get_logger
 import torch
@@ -6,6 +6,7 @@ import torch.nn.functional as F
 
 @dataclass
 class ValidationResult():
+    others: field(default_factory=dict)
     real_image: torch.Tensor = None
     fake_image: torch.Tensor = None
     recon_image: torch.Tensor = None
