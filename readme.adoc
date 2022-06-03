@@ -393,6 +393,25 @@ NeruIPS 2016. [https://arxiv.org/abs/1606.05328[PDF]]
 | image:assets/pixelcnn/mnist_cond.jpg[mnist_mlp, {img-size}, {img-size}]
 |===
 
+=== Transformer
+Vanilla transformer based augoregressive models.
+
+[cols="2*", options="header"] 
+|===
+^| Dataset
+^.^| Samples
+// ^.^| Class Condition Samples
+
+^.^| MNIST
+| image:assets/tar/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+// | image:assets/pixelcnn/mnist_cond.jpg[mnist_mlp, {img-size}, {img-size}]
+|===
+
+[source, bash]
+----
+python run.py experiment=tar/mnist
+----
+
 == Diffusion Models
 === DDPM
 *_Denoising Diffusion Probabilistic Models_* +

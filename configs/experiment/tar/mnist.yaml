@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /model: tar
+  - override /datamodule: mnist
+
+exp_name: tar/mnist
+
+datamodule:
+  transforms:
+    grayscale: True
+    normalize: False
+trainer:
+  max_epochs: 20
+  check_val_every_n_epoch: 1

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 @dataclass
 class ValidationResult():
-    others: field(default_factory=dict)
+    others: dict = field(default_factory=dict)
     real_image: torch.Tensor = None
     fake_image: torch.Tensor = None
     recon_image: torch.Tensor = None

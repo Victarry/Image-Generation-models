@@ -1,0 +1,9 @@
+defaults:
+    - override /callbacks@_global_: ar_models
+_target_: src.models.tar.TAR
+lr: 1e-3
+b1: 0.9
+b2: 0.999
+d_model: 256
+nhead: 4
+num_layers: 4

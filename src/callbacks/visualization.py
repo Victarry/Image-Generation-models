@@ -33,8 +33,9 @@ class SampleImagesCallback(pl.Callback):
                 torchvision.utils.save_image(fake_grid, result_path / f"{trainer.current_epoch}.jpg")
 
             for key in outputs.others:
-                grid = get_grid_images(outputs.others[key], pl_module)
-                trainer.logger.experiment.add_image(f"images/{key}", grid, global_step=trainer.current_epoch)
+                if outputs.others[key] is not None:
+                    grid = get_grid_images(outputs.others[key], pl_module)
+                    trainer.logger.experiment.add_image(f"images/{key}", grid, global_step=trainer.current_epoch)
 
 
 class TraverseLatentCallback(pl.Callback):
