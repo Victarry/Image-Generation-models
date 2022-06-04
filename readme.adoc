@@ -396,20 +396,22 @@ NeruIPS 2016. [https://arxiv.org/abs/1606.05328[PDF]]
 === Transformer
 Vanilla transformer based augoregressive models.
 
-[cols="2*", options="header"] 
+[cols="3*", options="header"] 
 |===
 ^| Dataset
 ^.^| Samples
-// ^.^| Class Condition Samples
+^.^| Class Condition Samples
 
 ^.^| MNIST
 | image:assets/tar/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
-// | image:assets/pixelcnn/mnist_cond.jpg[mnist_mlp, {img-size}, {img-size}]
+| image:assets/tar/mnist_cond.jpg[mnist_mlp, {img-size}, {img-size}]
 |===
 
 [source, bash]
 ----
 python run.py experiment=tar/mnist
+
+python run.py experiment=tar/mnist_cond
 ----
 
 == Diffusion Models

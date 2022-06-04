@@ -1,7 +1,7 @@
 ## Vector quantized autoregressive model
 import torch
 from omegaconf import OmegaConf
-from torch import nn
+from torch import embedding, embedding_renorm_, nn
 from torch import Tensor
 import math
 from einops import rearrange
@@ -10,26 +10,6 @@ from src.utils.losses import normal_kld
 import torch.nn.functional as F
 import numpy as np
 
-# class PositionalEncoding(nn.Module):
-
-#     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
-#         super().__init__()
-#         self.dropout = nn.Dropout(p=dropout)
-
-#         position = torch.arange(max_len).unsqueeze(1)
-#         div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-#         pe = torch.zeros(max_len, 1, d_model)
-#         pe[:, 0, 0::2] = torch.sin(position * div_term)
-#         pe[:, 0, 1::2] = torch.cos(position * div_term)
-#         self.register_buffer('pe', pe)
-
-#     def forward(self, x: Tensor) -> Tensor:
-#         """
-#         Args:
-#             x: Tensor, shape [seq_len, batch_size, embedding_dim]
-#         """
-#         x = x + self.pe[:x.size(0)]
-#         return self.dropout(x)
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model: int, H: int, W: int) -> None:
@@ -50,6 +30,21 @@ class PositionalEncoding(nn.Module):
         x = x + h_pe[:x.size(0)] + w_pe[:x.size(0)]
         return x
 
+class PixelEncoding(nn.Module):
+    def __init__(self, n_tokens, d_model, class_cond=False, n_classes=None) -> None:
+        super().__init__()
+        self.pixel_embed = nn.Embedding(num_embeddings=n_tokens, embedding_dim=d_model)
+        if class_cond:
+            self.cond_embed = nn.Embedding(num_embeddings=n_classes, embedding_dim=d_model)
+        else:
+            self.cond_embed = nn.Embedding(num_embeddings=1, embedding_dim=d_model)
+        
+    def forward(self, tokens):
+        token1 = self.cond_embed(tokens[0:1])
+        token2 = self.pixel_embed(tokens[1:])
+        return torch.cat([token1, token2], dim=0)
+
+
 class TAR(BaseModel):
     def __init__(
         self,
@@ -59,27 +54,32 @@ class TAR(BaseModel):
         b2: float = 0.999,
         d_model: int = 256,
         nhead: int = 4,
-        num_layers: int = 4
+        num_layers: int = 4,
+        class_cond: bool = False,
+        n_classes: int = 10
     ):
         super().__init__(datamodule)
         self.save_hyperparameters()
-        self.n_tokens = 3 # 0-255 and <sos>
+        self.n_tokens = 2 # 0-255 and <sos>
+
         self.pos_embed = PositionalEncoding(d_model, H=self.height, W=self.width)
-        self.pixel_embed = nn.Embedding(num_embeddings=self.n_tokens, embedding_dim=d_model)
+        self.pixel_embed = PixelEncoding(self.n_tokens, d_model, class_cond, n_classes=n_classes)
 
         encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, dim_feedforward=1024)
         self.encoder = nn.TransformerEncoder(encoder_layer=encoder_layer, num_layers=num_layers)
-
         self.proj = nn.Linear(d_model, self.n_tokens)
 
-    def img2tokens(self, imgs):
+    def img2tokens(self, imgs, label):
         N = imgs.shape[0]
         # imgs = (imgs * 255 + 0.5).long().clamp(0, 255)
         imgs[imgs >= 0.5] = 1
         imgs[imgs < 0.5] = 0
         tokens = rearrange(imgs.long(), 'n c h w -> (h w c) n')
         # prepend <sos> to tokens
-        sos = torch.zeros(1, N, device=self.device, dtype=torch.long).fill_(self.n_tokens-1) # start of sequence
+        if self.hparams.class_cond:
+            sos = label.long().reshape(1, N) # start of sequence
+        else:
+            sos = torch.zeros(1, N, device=self.device, dtype=torch.long) # start of sequence
         tokens = torch.cat([sos, tokens], dim=0) # (seq_len+1, batch)
         return tokens
 
@@ -110,7 +110,7 @@ class TAR(BaseModel):
         imgs, labels = batch # (N, C, H, W)
         N, C, H, W = imgs.shape
 
-        tokens = self.img2tokens(imgs)
+        tokens = self.img2tokens(imgs, labels)
 
         loss = self.cal_loss(tokens)
         self.log("train_log/nll", loss)
@@ -125,11 +125,14 @@ class TAR(BaseModel):
         scheduler = torch.optim.lr_scheduler.StepLR(opt, 1, gamma=0.99)
         return [opt], [scheduler]
     
-    def sample(self, shape, tokens=None):
+    def sample(self, shape, tokens=None, labels=None):
         if tokens == None:
             N, C, H, W = shape
             tokens = torch.zeros(1+H*W*C, N, device=self.device).long().fill_(-1)
-            tokens[0].fill_(self.n_tokens-1) # set <sos> to index 0
+            if self.hparams.class_cond:
+                tokens[0] = labels
+            else:
+                tokens[0].fill_(0) # set <sos> to index 0
 
         for i in range(tokens.shape[0]-1):
             if (tokens[i+1, :] != -1).all().item():
@@ -145,7 +148,7 @@ class TAR(BaseModel):
         imgs, labels = batch
         N, C, H, W = shape = imgs.shape
 
-        tokens = self.img2tokens(imgs)
+        tokens = self.img2tokens(imgs, labels)
         loss = self.cal_loss(tokens)
 
         random_tokens = torch.randint(0, 2, (C*H*W+1, N), device=self.device)
@@ -155,12 +158,15 @@ class TAR(BaseModel):
         fake_imgs = None
         mask_image = None
         if batch_idx == 0:
-            fake_imgs = self.sample(shape).float()
+            fake_labels = None
+            if self.hparams.class_cond:
+                fake_labels = torch.arange(0, self.hparams.n_classes).reshape(-1, 1).repeat(1, 8).reshape(-1)
+            fake_imgs = self.sample((self.hparams.n_classes*8, C, H, W), labels=fake_labels).float()
 
             tokens[H*W*C // 2:] = -1
             mask_image = self.sample(shape, tokens=tokens)
 
-            fake_tokens = self.img2tokens(mask_image)
+            fake_tokens = self.img2tokens(mask_image, labels)
             fake_loss = self.cal_loss(fake_tokens)
             self.log("var_log/fake_bpg", fake_loss / (H*W*C) / np.log(2))
 
