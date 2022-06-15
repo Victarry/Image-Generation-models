@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /model: made 
+  - override /datamodule: mnist
+
+exp_name: made/mnist
+
+datamodule:
+  transforms:
+    grayscale: True
+    normalize: False
+trainer:
+  max_epochs: 100
+  check_val_every_n_epoch: 10

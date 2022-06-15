@@ -347,8 +347,8 @@ AAAI 2018. [https://arxiv.org/abs/1704.02304[PDF]]
 
 ^.^| Results
 | image:assets/age/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
-| TODO image:assets/age/celeba.jpg[cleba_conv, {img-size}, {img-size}]
-| TODO image:assets/age/cifar10.jpg[cifar10_conv, {img-size}, {img-size}]
+| TODO 
+| TODO
 |===
 
 === VQ-VAE
@@ -376,6 +376,21 @@ NeruIPS 2017. [https://arxiv.org/abs/1711.00937[PDF]]
 |===
 
 == Augoregressive Models
+
+=== MADE: Masked Autoencoder for Distribution Estimation
+*_MADE: Masked Autoencoder for Distribution Estimation_* +
+_Mathieu Germain, Karol Gregor, Iain Murray, Hugo Larochelle_ +
+ICML 2015. [https://arxiv.org/abs/1502.03509[PDF]]
+
+[cols="2*", options="header"] 
+|===
+^| Dataset
+^.^| Samples
+
+^.^| MNIST
+| image:assets/made/mnist.jpg[mnist_mlp, {img-size}, {img-size}]
+|===
+
 
 === PixelCNN
 *_Conditional Image Generation with PixelCNN Decoders_* +

@@ -1,0 +1,7 @@
+defaults:
+    - override /callbacks@_global_: ar_models
+
+_target_: src.models.made.MADE
+hidden_dim: 1024
+n_layer: 3
+lr: 1e-3
