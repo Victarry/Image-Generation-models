@@ -1,0 +1,6 @@
+defaults:
+    - override /callbacks@_global_: ar_models
+
+_target_: src.models.nvp.RealNVP
+hidden_dim: 32
+lr: 1e-3

@@ -16,7 +16,7 @@ class MaskedLinear(nn.Module):
         self.register_buffer("mask", torch.ones(out_channel, in_channel))
     
     def set_mask(self, mask):
-        self.mask = mask
+        self.mask.data.copy_(mask)
 
     def forward(self, x):
         return F.linear(x, weight=self.model.weight * self.mask, bias=self.model.bias)

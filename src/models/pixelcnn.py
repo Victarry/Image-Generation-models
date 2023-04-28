@@ -7,7 +7,10 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from src.models.base import BaseModel, ValidationResult
 
-# TODO: This implementation does not handle color dependency problem(which is nontrival with mask handling), thus has worse results on color images.
+# TODO: 
+# 1. handle color dependency problem(which is nontrival with mask handling), thus has worse results on color images.
+# 2. Parallen PixelCNN
+# 3. 
 
 class MaskedConvolution(nn.Module):
     def __init__(self, c_in, c_out, mask, **kwargs):
