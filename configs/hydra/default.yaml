@@ -10,3 +10,4 @@ sweep:
 job:
   env_set:
     EXAMPLE_VAR: "example_value"
+  chdir: True

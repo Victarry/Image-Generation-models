@@ -40,8 +40,9 @@ def train(config: DictConfig):
 
     # Init lightning trainer
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
-    if isinstance(config.trainer.gpus, int) and config.trainer.gpus > 0:
-        config.trainer.gpus = GPUtil.getAvailable(limit=config.trainer.gpus, maxMemory=0.5, order='random')
+    # Automatic assign free GPUs to trainer 
+    if isinstance(config.trainer.devices, int) and config.trainer.devices > 0:
+        config.trainer.devices = GPUtil.getAvailable(limit=config.trainer.devices, maxMemory=0.5, order='random')
     trainer: Trainer = hydra.utils.instantiate(
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )

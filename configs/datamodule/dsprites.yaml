@@ -1,13 +1,16 @@
+# @package _global_
 defaults:
-  - override /networks@_global_: conv_64
+  - override /networks: conv_64
 
-_target_: src.datamodules.dsprite.DataModule
-data_dir: ${data_dir}
-channels: 1
-width: 64
-height: 64
-batch_size: 128
-num_workers: 4
-transforms:
-  grayscale: True
-  normalize: False
+
+datamodule:
+  _target_: src.datamodules.dsprite.DataModule
+  data_dir: ${data_dir}
+  channels: 1
+  width: 64
+  height: 64
+  batch_size: 128
+  num_workers: 4
+  transforms:
+    grayscale: True
+    normalize: False

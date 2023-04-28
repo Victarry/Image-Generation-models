@@ -15,7 +15,7 @@ class SampleImagesCallback(pl.Callback):
         self.batch_size = batch_size
         self.every_n_epochs = every_n_epochs
 
-    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx, dataloader_idx):
+    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx):
         if trainer.current_epoch % self.every_n_epochs == 0 and batch_idx == 0:
             result_path = Path("results")
             result_path.mkdir(parents=True, exist_ok=True)
@@ -57,7 +57,7 @@ class TraverseLatentCallback(pl.Callback):
         grid = get_grid_images(imgs, pl_module, nimgs=row*col, nrow=col)
         return grid
     
-    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx, dataloader_idx: int):
+    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx):
         if batch_idx == 0:
             self.z = outputs.encode_latent
     
@@ -95,7 +95,7 @@ class LatentVisualizationCallback(pl.Callback):
             self.latents = []
             self.labels = []
     
-    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx, dataloader_idx):
+    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx):
         if pl_module.hparams.latent_dim == 2:
             self.latents.append(outputs.encode_latent)
             self.labels.append(outputs.label)

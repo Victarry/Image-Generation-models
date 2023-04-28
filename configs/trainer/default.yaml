@@ -1,9 +1,8 @@
 _target_: pytorch_lightning.Trainer
 
 # set `1` to train on GPU, `0` to train on CPU only
-gpus: 1
+devices: 1
 
 max_epochs: 20
 
 enable_model_summary: False
-resume_from_checkpoint: null

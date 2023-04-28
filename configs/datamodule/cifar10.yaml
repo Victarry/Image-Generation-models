@@ -1,14 +1,16 @@
+# @package _global_
 defaults:
-  - override /networks@_global_: conv_32
+  - override /networks: conv_32
 
-_target_: src.datamodules.cifar10.CIFAR10DataModule
-data_dir: ${data_dir}
-channels: 3
-width: 32
-height: 32
-batch_size: 128
-num_workers: 8
-n_classes: 10
-transforms:
-  convert: True
-  normalize: True
+datamodule:
+  _target_: src.datamodules.cifar10.CIFAR10DataModule
+  data_dir: ${data_dir}
+  channels: 3
+  width: 32
+  height: 32
+  batch_size: 128
+  num_workers: 8
+  n_classes: 10
+  transforms:
+    convert: True
+    normalize: True

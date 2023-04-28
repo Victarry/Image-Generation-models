@@ -1,7 +1,6 @@
 # @package _global_
 defaults:
   - override /model: vae
-  - override /networks: conv_mnist
   - override /datamodule: mnist
 
 exp_name: vae/mnist_conv

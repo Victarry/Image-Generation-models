@@ -1,15 +1,17 @@
+# @package _global_
 defaults:
-  - override /networks@_global_: conv_mnist
+  - override /networks: conv_mnist
 
-_target_: src.datamodules.mnist.MNISTDataModule
-data_dir: ${data_dir}
-channels: 1
-width: 28
-height: 28
-batch_size: 128
-num_workers: 8
-n_classes: 10
-transforms:
-  convert: True
-  normalize: True
-  grayscale: True
+datamodule:
+  _target_: src.datamodules.mnist.MNISTDataModule
+  data_dir: ${data_dir}
+  channels: 1
+  width: 28
+  height: 28
+  batch_size: 128
+  num_workers: 8
+  n_classes: 10
+  transforms:
+    convert: True
+    normalize: True
+    grayscale: True

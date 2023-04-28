@@ -71,7 +71,7 @@ git clone https://github.com/Victarry/Image-Generation-models.git
 +
 [source, bash]
 ----
-conda env create -n image-generation python=3.8
+conda env create -n image-generation python=3.10
 conda activate image-generation
 pip install requirement.txt
 ----
@@ -79,7 +79,7 @@ pip install requirement.txt
 +
 [source, bash]
 ----
-python run.py experiment=vae/mnist
+python run.py experiment=vae/mnist_conv
 ----
 
 For different datasets, refer to documentation of datasets.

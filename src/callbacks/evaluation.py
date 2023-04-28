@@ -18,7 +18,7 @@ class FIDEvaluationCallback(pl.Callback):
         if pl_module.channels == 3 and trainer.current_epoch % self.every_n_epoch == 0:
             self.fid = torchmetrics.FID().to(pl_module.device)
 
-    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx, dataloader_idx):
+    def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx):
         if pl_module.channels == 3 and trainer.current_epoch % self.every_n_epoch == 0:
             real_imgs, fake_images = outputs.real_image, outputs.fake_image
             self.fid.update(self.image_float2int(real_imgs, pl_module), real=True)
