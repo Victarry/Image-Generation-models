@@ -5,16 +5,11 @@ from .utils import FeatureExtractor
 from .basic import get_act_function, get_norm_layer
 
 
-
 class Decoder(BaseNetwork):
     def __init__(self, input_channel=1, output_channel=3, ngf=32, norm_type="batch", output_act="tanh"):
         super().__init__(input_channel, output_channel)
         self.main = nn.Sequential(
-            nn.ConvTranspose2d(input_channel, ngf * 8, 1, 1, 0),
-            get_norm_layer(norm_type)(ngf * 8),
-            nn.ReLU(True),
-            # (ngf*8) x 1 x 1
-            nn.ConvTranspose2d(ngf * 8, ngf * 8, 4, 1, 0),
+            nn.ConvTranspose2d(input_channel, ngf * 8, 4, 1, 0),
             get_norm_layer(norm_type)(ngf * 8),
             nn.ReLU(True),
             # state size. (ngf*8) x 4 x 4
@@ -69,11 +64,7 @@ class Encoder(BaseNetwork):
             get_norm_layer(norm_type)(ndf * 8),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*8) x 4 x 4
-            nn.Conv2d(ndf * 8, ndf*8, 4, 1, 0),
-            get_norm_layer(norm_type)(ndf * 8),
-            nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*8) x 1 x 1
-            nn.Conv2d(ndf * 8, output_channel, 1, 1, 0),
+            nn.Conv2d(ndf * 8, output_channel, 4, 1, 0),
         )
 
     def forward(self, input):

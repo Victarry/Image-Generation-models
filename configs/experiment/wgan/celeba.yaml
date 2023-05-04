@@ -5,19 +5,19 @@ defaults:
   - override /datamodule: celeba
 
 trainer:
-  max_epochs: 2000
-  check_val_every_n_epoch: 10
+  max_epochs: 200
+  check_val_every_n_epoch: 1
 networks:
   encoder:
     ndf: 64
   decoder:
     ngf: 64
 
-lr: 1e-4
+lr: 5e-5
 model:
   lrG: ${lr}
   lrD: ${lr}
   n_critic: 5
   clip_weight: 0.01
   eval_fid: True
-exp_name: wgan/celeba_${lr}
+exp_name: wgan/celeba_lr${lr}_clip${model.clip_weight}
