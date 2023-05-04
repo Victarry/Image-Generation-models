@@ -17,17 +17,18 @@ class WGAN(BaseModel):
         netD,
         latent_dim=100,
         n_critic=5,
-        lrG: float = 2e-4,
-        lrD: float = 2e-4,
+        lrG: float = 1e-4,
+        lrD: float = 1e-4,
         b1: float = 0,
         b2: float = 0.9,
         gp_weight=10,
     ):
         super().__init__(datamodule)
         self.save_hyperparameters()
+        self.automatic_optimization = False
 
-        self.generator = hydra.utils.instantiate(netG, input_channel=latent_dim, output_channel=self.channels, norm_type="instance")
-        self.discriminator = hydra.utils.instantiate(netD, input_channel=self.channels, output_channel=1, norm_type="instance")
+        self.generator = hydra.utils.instantiate(netG, input_channel=latent_dim, output_channel=self.channels, norm_type="layer")
+        self.discriminator = hydra.utils.instantiate(netD, input_channel=self.channels, output_channel=1, norm_type="layer")
 
     def forward(self, z):
         output = self.generator(z)
@@ -48,26 +49,28 @@ class WGAN(BaseModel):
         opt_d = torch.optim.Adam(
             self.discriminator.parameters(), lr=lrD, betas=(b1, b2)
         )
-        return [
-            {"optimizer": opt_g, "frequency": 1},
-            {"optimizer": opt_d, "frequency": self.hparams.n_critic},
-        ]
+        return opt_g, opt_d
 
-    def training_step(self, batch, batch_idx, optimizer_idx):
+    def training_step(self, batch, batch_idx):
         imgs, _ = batch  # (N, C, H, W)
 
         # sample noise
         z = torch.randn(imgs.shape[0], self.hparams.latent_dim)  # (N, latent_dim)
         z = z.type_as(imgs)
 
-        if optimizer_idx == 0:
+        opt_g, opt_d = self.optimizers()
+
+        if batch_idx % (self.hparams.n_critic+1) == self.hparams.n_critic:
             generated_imgs = self(z)
 
             g_loss = -torch.mean(self.discriminator(generated_imgs))
             self.log("train_loss/g_loss", g_loss, prog_bar=True)
-            return g_loss
 
-        if optimizer_idx == 1:
+            opt_g.zero_grad()
+            self.manual_backward(g_loss)
+            opt_g.step()
+
+        else:
             # real loss
             real_loss = -self.discriminator(imgs).mean()
 
@@ -100,7 +103,9 @@ class WGAN(BaseModel):
             self.log("train_log/fake_logit", fake_loss)
             self.log("train_log/gradient_panelty", gradient_panelty)
 
-            return d_loss
+            opt_d.zero_grad()
+            self.manual_backward(d_loss)
+            opt_d.step()
 
     def validation_step(self, batch, batch_idx):
         img, _ = batch

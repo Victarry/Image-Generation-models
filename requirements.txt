@@ -1,5 +1,5 @@
 # --------- pytorch --------- #
-torch>=1.8.1
+torch>=2.0.0
 torchvision>=0.9.1
 pytorch-lightning>=2.0.0
 
@@ -16,6 +16,7 @@ torch-fidelity>=0.3.0
 # hydra-submitit-launcher
 
 # --------- loggers --------- #
+tensorboardx
 wandb
 # neptune-client
 # mlflow

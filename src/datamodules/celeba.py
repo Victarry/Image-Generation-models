@@ -16,6 +16,7 @@ class CelebADataModule(BaseDatamodule):
         super().__init__(width, height, channels, batch_size, num_workers)
         self.data_dir = data_dir
         self.transform = get_transform(transforms)
+        print("Preparing celeba transforms", self.transform)
 
     def prepare_data(self):
         CelebA(self.data_dir, split="all", download=True)

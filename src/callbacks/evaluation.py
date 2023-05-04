@@ -1,5 +1,6 @@
 import pytorch_lightning as pl
 import torchmetrics
+from torchmetrics.image.fid import FrechetInceptionDistance
 import torch
 from src.models.base import ValidationResult
 
@@ -16,7 +17,7 @@ class FIDEvaluationCallback(pl.Callback):
 
     def on_validation_epoch_start(self, trainer, pl_module) -> None:
         if pl_module.channels == 3 and trainer.current_epoch % self.every_n_epoch == 0:
-            self.fid = torchmetrics.FID().to(pl_module.device)
+            self.fid = FrechetInceptionDistance().to(pl_module.device)
 
     def on_validation_batch_end(self, trainer, pl_module, outputs: ValidationResult, batch, batch_idx):
         if pl_module.channels == 3 and trainer.current_epoch % self.every_n_epoch == 0:
