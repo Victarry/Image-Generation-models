@@ -6,6 +6,7 @@
 
 而这个两种network的区别仅在于我后来为了提高网络复杂度，多加了一层conv layer，本以为一层网络不会影响训练稳定性的，但实际上差别非常大，原来的network能在10个epoch内生成有意义的图像，而加了一层conv layer之后需要1000 epochs才有概率生成有意义的图像。
 
+== 网络结构对比分析
 
 work版本的generator和discriminator:
 ----
@@ -110,21 +111,47 @@ Discriminator将原来网络的最后一个Conv
 
 同时分别单独替换Generator和Discriminator，发现替换Generator后仍然能够正常采样，但替换Discriminator后质量大幅下降。
 
+[%header, cols=2*] 
+|===
+| 修改Discriminator
+| 只修改Generator
+
+| image:../assets/wiki/wgan/changeD.jpg[ChangeD]
+| image:../assets/wiki/wgan/changeG.jpg[ChangeG]
+
+|===
+
 
 进一步，
 Discriminator将原来网络的最后一个Conv
+----
 (11): Conv2d(512, 1, kernel_size=(4, 4), stride=(1, 1), bias=False)
+----
 重新替换成
+
+----
 (11): Conv2d(512, 1024, kernel_size=(4, 4), stride=(1, 1))
 (14): Conv2d(1024, 1, kernel_size=(1, 1), stride=(1, 1))
+----
+
 两个Layer，也不管用
 
-具体原因应该跟weight cliping有关系
+猜测: 具体原因应该跟weight cliping有关系
+
+用修改后的discriminator搭配WGAN-GP，就可以正常训练，证明是weight clipping的问题
+
+分析两种情况real 和 fake logits的分布:
+
+image::../assets/wiki/wgan/logits.png[]
+
+发现ChangeD的情况下，出现了明显的gradient vanishing现象。
+
+> 为什么正好加上这一层就会出现gradient vanishing呢？
 
 // TOOD: 具体原因还没搞清楚 -> 深度学习的可解释性啊。。。
 
 
-=== 其他参数的敏感性分析:
+== 其他参数的敏感性分析:
 
 . lr: 从1e-4到5e-5之间，效果差别不是很大
 . optimizer:
